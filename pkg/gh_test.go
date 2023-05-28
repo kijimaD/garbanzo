@@ -1,3 +1,5 @@
+//go:build gh
+
 package garbanzo
 
 import (

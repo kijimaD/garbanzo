@@ -48,6 +48,10 @@ run: ## Run
 test: ## Run test
 	go test -race -shuffle=on -v ./...
 
+.PHONY: testGH
+testGH: ## GitHubへのアクセスが発生するテストを実行する
+	go test ./... -v -tags gh
+
 .PHONY: help
 help: ## Show help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
