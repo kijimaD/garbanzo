@@ -10,7 +10,7 @@ type Event struct {
 	LatestURL      string
 }
 
-type Events []*Event
+type Events map[string]*Event
 
 func newEvent(notificationID string, userName string, avatarURL string, title string, body string, latestURL string) *Event {
 	return &Event{

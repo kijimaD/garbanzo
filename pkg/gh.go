@@ -29,38 +29,16 @@ func newGitHub() *GitHub {
 	return &GitHub{Client: client}
 }
 
-var notifications []*github.Notification
-var events Events
-
 // issueが開かれたときに対応してない。その場合は、LatestCommentURLにコメントIDではなく、issue IDが入る。
-func (gh *GitHub) getNotifications() error {
+func (gh *GitHub) getNotifications(s *store) error {
 	ctx := context.Background()
 	ns, _, err := gh.Client.Activity.ListRepositoryNotifications(ctx, "golang", "go", nil)
 	if err != nil {
 		return err
 	}
 
-	// eventsもしくはnotificationsになければ追加する
-	// キーがnotificationIDのmapにすればいいような
 	for _, n := range ns {
-		exists := false
-
-		for _, e := range events {
-			if *n.ID == e.NotificationID {
-				exists = true
-				break
-			}
-		}
-		for _, gn := range notifications {
-			if *n.ID == *gn.ID {
-				exists = true
-				break
-			}
-		}
-
-		if !exists {
-			notifications = append(notifications, n)
-		}
+		s.notifications[*n.ID] = n
 	}
 
 	return nil
@@ -68,14 +46,14 @@ func (gh *GitHub) getNotifications() error {
 
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
-func (gh *GitHub) processNotification() error {
-	for _, n := range notifications {
+func (gh *GitHub) processNotification(s *store) error {
+	for _, n := range s.notifications {
 		event, err := gh.getEvent(n)
 		if err != nil {
 			return err
 		}
 
-		events = append(events, event)
+		s.events[*n.ID] = event
 	}
 
 	return nil
