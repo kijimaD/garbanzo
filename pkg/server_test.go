@@ -10,7 +10,7 @@ import (
 )
 
 func TestRouter(t *testing.T) {
-	router := NewRouter()
+	router := NewRouter("templates/*.html")
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
 
@@ -21,5 +21,5 @@ func TestRouter(t *testing.T) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Equal(t, "this is root", string(respBody))
+	assert.Contains(t, string(respBody), "ビューワ")
 }
