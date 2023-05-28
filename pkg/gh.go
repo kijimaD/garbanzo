@@ -40,7 +40,8 @@ func (gh *GitHub) getNotifications(s *store) error {
 	}
 
 	for _, n := range ns {
-		s.notifications[*n.ID] = n
+		id := notificationID(*n.ID)
+		s.notifications[id] = n
 	}
 
 	return nil
@@ -55,7 +56,8 @@ func (gh *GitHub) processNotification(s *store) error {
 			return err
 		}
 
-		s.events[*n.ID] = event
+		id := notificationID(*n.ID)
+		s.events[id] = event
 	}
 
 	return nil
