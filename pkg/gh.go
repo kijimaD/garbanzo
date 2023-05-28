@@ -32,8 +32,7 @@ func newGitHub() *GitHub {
 var Evs Events
 
 // issueが開かれたときに対応してない。その場合は、LatestCommentURLにコメントIDではなく、issue IDが入る。
-func (*GitHub) getNotifications() error {
-	gh := newGitHub()
+func (gh *GitHub) getNotifications() error {
 	ctx := context.Background()
 	notifications, _, err := gh.Client.Activity.ListRepositoryNotifications(ctx, "golang", "go", nil)
 	if err != nil {
@@ -41,30 +40,42 @@ func (*GitHub) getNotifications() error {
 	}
 
 	for _, n := range notifications {
-		u, err := url.Parse(*n.Subject.LatestCommentURL)
-		if err != nil {
-			return err
-		}
-		commentID := path.Base(u.Path)
-
-		IDint64, err := strconv.ParseInt(commentID, 10, 64)
+		event, err := gh.getEvent(n)
 		if err != nil {
 			return err
 		}
 
-		comment, _, err := gh.Client.Issues.GetComment(ctx, "golang", "go", IDint64)
-		if err != nil {
-			return err
-		}
-		event := newEvent(
-			*comment.User.Login,
-			*comment.User.AvatarURL,
-			*n.Subject.Title,
-			*comment.Body,
-			*n.Subject.LatestCommentURL,
-		)
 		Evs = append(Evs, event)
 	}
 
 	return nil
+}
+
+func (gh *GitHub) getEvent(n *github.Notification) (*Event, error) {
+	ctx := context.Background()
+
+	u, err := url.Parse(*n.Subject.LatestCommentURL)
+	if err != nil {
+		return nil, err
+	}
+	commentID := path.Base(u.Path)
+
+	IDint64, err := strconv.ParseInt(commentID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	comment, _, err := gh.Client.Issues.GetComment(ctx, "golang", "go", IDint64)
+	if err != nil {
+		return nil, err
+	}
+	event := newEvent(
+		*comment.User.Login,
+		*comment.User.AvatarURL,
+		*n.Subject.Title,
+		*comment.Body,
+		*n.Subject.LatestCommentURL,
+	)
+
+	return event, nil
 }
