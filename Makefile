@@ -36,6 +36,10 @@ lint: ## Run lint
 	docker run --rm -v ${PWD}:/app -w /app golangci/golangci-lint:v1.51.2 golangci-lint run -v
 	docker run --rm -v ${PWD}:/app -w /app golang:1.20 go vet ./...
 
+.PHONY: gen
+gen: ## go generateを実行する
+	go generate ./...
+
 .PHONY: run
 run: ## Run
 	go run .

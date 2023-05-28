@@ -1,3 +1,5 @@
+//go:generate mockgen -source=gh.go -destination=gh_mock.go -package=garbanzo
+
 package garbanzo
 
 import (

@@ -6,6 +6,7 @@ require github.com/stretchr/testify v1.8.2
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-github/v48 v48.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
