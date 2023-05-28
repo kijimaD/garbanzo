@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRouter(t *testing.T) {
+func TestRootHandler(t *testing.T) {
 	router := NewRouter("templates/*.html")
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
@@ -22,4 +22,19 @@ func TestRouter(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, string(respBody), "ビューワ")
+}
+
+func TestGHHandler(t *testing.T) {
+	router := NewRouter("templates/*.html")
+	testServer := httptest.NewServer(router)
+	defer testServer.Close()
+
+	req, _ := http.NewRequest("GET", testServer.URL+"/gh", nil)
+
+	client := new(http.Client)
+	resp, _ := client.Do(req)
+	respBody, _ := ioutil.ReadAll(resp.Body)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Contains(t, string(respBody), "github")
 }
