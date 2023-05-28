@@ -25,11 +25,11 @@ func TestRootHandler(t *testing.T) {
 }
 
 func TestGHHandler(t *testing.T) {
-	router := NewRouter("templates/*.html")
+	router := NewProxyRouter()
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
 
-	req, _ := http.NewRequest("GET", testServer.URL+"/gh", nil)
+	req, _ := http.NewRequest("GET", testServer.URL, nil)
 
 	client := new(http.Client)
 	resp, _ := client.Do(req)
