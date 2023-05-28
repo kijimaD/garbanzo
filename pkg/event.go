@@ -1,5 +1,7 @@
 package garbanzo
 
+import "time"
+
 type notificationID string
 
 // Eventはフロント側で1つ1つの通知表示に必要な項目
@@ -10,11 +12,12 @@ type Event struct {
 	Title          string
 	Body           string
 	LatestURL      string
+	When           time.Time
 }
 
 type Events map[notificationID]*Event
 
-func newEvent(notificationID string, userName string, avatarURL string, title string, body string, latestURL string) *Event {
+func newEvent(notificationID string, userName string, avatarURL string, title string, body string, latestURL string, when time.Time) *Event {
 	return &Event{
 		NotificationID: notificationID,
 		UserName:       userName,
@@ -22,5 +25,6 @@ func newEvent(notificationID string, userName string, avatarURL string, title st
 		Title:          title,
 		Body:           body,
 		LatestURL:      latestURL,
+		When:           when,
 	}
 }
