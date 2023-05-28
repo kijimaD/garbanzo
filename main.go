@@ -1,10 +1,8 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
+import garbanzo "github.com/kijimaD/garbanzo/pkg"
 
 func main() {
-	fmt.Fprintln(os.Stdout, "Hello world")
+	router := garbanzo.NewRouter()
+	router.Start(":8080")
 }
