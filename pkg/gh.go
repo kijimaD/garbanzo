@@ -40,11 +40,34 @@ func (gh *GitHub) getNotifications() error {
 		return err
 	}
 
-	notifications = ns
+	// eventsもしくはnotificationsになければ追加する
+	// キーがnotificationIDのmapにすればいいような
+	for _, n := range ns {
+		exists := false
+
+		for _, e := range events {
+			if *n.ID == e.NotificationID {
+				exists = true
+				break
+			}
+		}
+		for _, gn := range notifications {
+			if *n.ID == *gn.ID {
+				exists = true
+				break
+			}
+		}
+
+		if !exists {
+			notifications = append(notifications, n)
+		}
+	}
+
 	return nil
 }
 
 // notificationsの情報を補足してeventに変換する
+// 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification() error {
 	for _, n := range notifications {
 		event, err := gh.getEvent(n)
@@ -77,6 +100,7 @@ func (gh *GitHub) getEvent(n *github.Notification) (*Event, error) {
 		return nil, err
 	}
 	event := newEvent(
+		*n.ID,
 		*comment.User.Login,
 		*comment.User.AvatarURL,
 		*n.Subject.Title,
