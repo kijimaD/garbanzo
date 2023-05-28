@@ -14,12 +14,12 @@ func TestRouter(t *testing.T) {
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
 
-	req, _ := http.NewRequest("GET", testServer.URL+"/hello", nil)
+	req, _ := http.NewRequest("GET", testServer.URL, nil)
 
 	client := new(http.Client)
 	resp, _ := client.Do(req)
 	respBody, _ := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Equal(t, "hello", string(respBody))
+	assert.Equal(t, "this is root", string(respBody))
 }

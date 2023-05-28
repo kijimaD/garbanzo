@@ -9,11 +9,11 @@ import (
 func NewRouter() *echo.Echo {
 	e := echo.New()
 
-	e.GET("/hello", helloHandler)
+	e.GET("/", rootHandler)
 
 	return e
 }
 
-func helloHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "hello")
+func rootHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "this is root")
 }
