@@ -1,5 +1,6 @@
 package garbanzo
 
+// Eventはフロント側で1つ1つの通知表示に必要な項目
 type Event struct {
 	UserName  string
 	AvatarURL string

@@ -29,23 +29,30 @@ func newGitHub() *GitHub {
 	return &GitHub{Client: client}
 }
 
-var Evs Events
+var notifications []*github.Notification
+var events Events
 
 // issueが開かれたときに対応してない。その場合は、LatestCommentURLにコメントIDではなく、issue IDが入る。
 func (gh *GitHub) getNotifications() error {
 	ctx := context.Background()
-	notifications, _, err := gh.Client.Activity.ListRepositoryNotifications(ctx, "golang", "go", nil)
+	ns, _, err := gh.Client.Activity.ListRepositoryNotifications(ctx, "golang", "go", nil)
 	if err != nil {
 		return err
 	}
 
+	notifications = ns
+	return nil
+}
+
+// notificationsの情報を補足してeventに変換する
+func (gh *GitHub) processNotification() error {
 	for _, n := range notifications {
 		event, err := gh.getEvent(n)
 		if err != nil {
 			return err
 		}
 
-		Evs = append(Evs, event)
+		events = append(events, event)
 	}
 
 	return nil
