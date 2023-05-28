@@ -2,7 +2,6 @@ package garbanzo
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"os"
 	"path"
@@ -30,6 +29,9 @@ func newGitHub() *GitHub {
 	return &GitHub{Client: client}
 }
 
+var Evs Events
+
+// issueが開かれたときに対応してない。その場合は、LatestCommentURLにコメントIDではなく、issue IDが入る。
 func (*GitHub) getNotifications() error {
 	gh := newGitHub()
 	ctx := context.Background()
@@ -54,7 +56,15 @@ func (*GitHub) getNotifications() error {
 		if err != nil {
 			return err
 		}
-		fmt.Println(*comment.Body)
+		event := newEvent(
+			*comment.User.Login,
+			*comment.User.AvatarURL,
+			*n.Subject.Title,
+			*comment.Body,
+			*n.Subject.LatestCommentURL,
+		)
+		Evs = append(Evs, event)
 	}
+
 	return nil
 }
