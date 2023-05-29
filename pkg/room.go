@@ -2,6 +2,7 @@ package garbanzo
 
 import (
 	"log"
+	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/kijimaD/garbanzo/trace"
@@ -50,11 +51,12 @@ func (r *room) run() {
 			delete(r.wsClients, wsClient)
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
-		case msg := <-r.forward:
+		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
 				select {
-				case wsClient.send <- msg:
+				case wsClient.send <- forward:
 					// メッセージを送信
+					r.tracer.Trace("send message to client")
 				default:
 					// 送信に失敗
 					delete(r.wsClients, wsClient)
@@ -80,7 +82,25 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	r.join <- wsc
 	defer func() { r.leave <- wsc }()
 	go wsc.write() // c.sendの内容をwebsocketに書き込む
-	wsc.read()     // 接続は保持され、終了を指示されるまで他の処理をブロックする
 
+	var once sync.Once
+	f := func() {
+		s := newStore()
+		gh := newGitHub()
+		err = gh.getNotifications(s)
+		if err != nil {
+			return
+		}
+		err = gh.processNotification(s)
+		if err != nil {
+			return
+		}
+		for _, v := range s.events {
+			r.forward <- v
+		}
+	}
+	once.Do(f)
+
+	wsc.read() // 接続は保持され、終了を指示されるまで他の処理をブロックする
 	return nil
 }

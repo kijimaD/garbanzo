@@ -19,8 +19,8 @@ func (wsc *wsClient) read() {
 
 // c.sendの内容をwebsocketに書き込む
 func (wsc *wsClient) write() {
-	for msg := range wsc.send {
-		if err := wsc.socket.WriteJSON(msg); err != nil {
+	for send := range wsc.send {
+		if err := wsc.socket.WriteJSON(send); err != nil {
 			break
 		}
 	}
