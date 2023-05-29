@@ -4,6 +4,7 @@ package garbanzo
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"os"
 	"path"
@@ -11,10 +12,28 @@ import (
 	"time"
 
 	"github.com/google/go-github/v48/github"
+	"github.com/kelseyhightower/envconfig"
 	"golang.org/x/oauth2"
 )
 
-const PROXY_URL = "http://localhost:8081"
+var PROXY_URL string
+
+type Env struct {
+	ProxyHost   string `envconfig:"PROXY_BASE" default:"http://localhost"`
+	ProxyPort   uint16 `envconfig:"PROXY_PORT" default:"8081"`
+	GitHubToken string `envconfig:"GH_TOKEN" required:"true"`
+}
+
+var env Env
+
+func init() {
+	err := envconfig.Process("", &env)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Can't parse environment variables: %s\n", err.Error())
+		os.Exit(1)
+	}
+	PROXY_URL = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
+}
 
 type clientI interface {
 	getNotifications() error
@@ -24,10 +43,9 @@ type GitHub struct {
 }
 
 func newGitHub() *GitHub {
-	token := os.Getenv("GH_TOKEN")
 	ctx := context.Background()
 	sts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
+		&oauth2.Token{AccessToken: env.GitHubToken},
 	)
 	tc := oauth2.NewClient(ctx, sts)
 	client := github.NewClient(tc)
