@@ -10,9 +10,10 @@ import (
 	garbanzo "github.com/kijimaD/garbanzo/pkg"
 )
 
+// TODO: 別パッケージにもある。一箇所にまとめたい
 type Env struct {
 	AppPort   uint16 `envconfig:"APP_PORT" default:"8080"`
-	ProxyPort uint16 `envconfig:"PROXY_PORT" default:"8081"` // TODO: 別パッケージに対応してないところがある
+	ProxyPort uint16 `envconfig:"PROXY_PORT" default:"8081"`
 }
 
 func main() {
