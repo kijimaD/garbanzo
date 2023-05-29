@@ -14,6 +14,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const PROXY_URL = "http://localhost:8081"
+
 type clientI interface {
 	getNotifications() error
 }
@@ -83,12 +85,21 @@ func (gh *GitHub) getEvent(n *github.Notification) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// ホストをプロキシサーバにする
+	h, err := url.Parse(*comment.HTMLURL)
+	if err != nil {
+		return nil, err
+	}
+	htmlURL := PROXY_URL + h.Path
+
 	event := newEvent(
 		*n.ID,
 		*comment.User.Login,
 		*comment.User.AvatarURL,
 		*n.Subject.Title,
 		*comment.Body,
+		htmlURL,
 		*n.Subject.LatestCommentURL,
 		*n.UpdatedAt,
 	)

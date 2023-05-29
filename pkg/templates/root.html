@@ -16,15 +16,30 @@
                  }
                  socket.onmessage = function(e) {
                      var msg = JSON.parse(e.data)
+                     var newLink = $('<a></a>', {
+                         href: msg.LatestURL,
+                     });
+                     var iframe = document.getElementById('x-iframe');
+                     iframe.src = msg.HTMLURL;
+                     $("#x-notification-link").append(newLink);
                      messages.append(
-                         $("<li>").append(
-                             $("<img>").css({
-                                 width: 50,
-                                 verticalAlign: "middle",
-                             }).attr("src", msg.AvatarURL),
-                             $("<strong>").text(msg.UserName + ": "),
-                             $("<span>").text(msg.Body)
-                         )
+                         $("<div>").addClass("card mb-1")
+                                   .css({maxWidth: 500})
+                                   .attr("id","x-notification-link")
+                                   .append(
+                                       $("<div>").addClass("container").append(
+                                           $("<img>").addClass("d-inline")
+                                                     .css({
+                                                         width: 50,
+                                                         verticalAlign: "middle",
+                                                     })
+                                                     .attr("src", msg.AvatarURL),
+                                           $("<small>").text(msg.UserName + ": "),
+                                           $("<strong>").text(msg.Title),
+                                           $("<li>").text(msg.Body)
+                                                    .addClass("nav-item mb-2 d-inline")
+                                       )
+                                   )
                      );
                  }
              }
@@ -42,26 +57,13 @@
                         <li class="nav-item mx-3 text-muted active"><a href="#" class="nav-link text-secondary">Option</a></li>
                     </ul>
                 </header>
-                <ul class="nav flex-column m-0 p-3">
-                    <div class="card mb-1" id="messages">
-
-                        <div class="container">
-                            <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">
-                            <li class="nav-item mb-2 d-inline">this is comment... </li>
-                        </div>
-                    </div>
-                    <div class="card mb-1">
-                        <div class="container">
-                            <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">
-                            <li class="nav-item mb-2 d-inline">The quick brown fox jumps over the lazy dog.</li>
-                        </div>
-                    </div>
-                    <div class="card mb-1">
-                        <div class="container">
-                            <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">
-                            <li class="nav-item mb-2 d-inline">Go is an open source programming language that makes it easy to build simple, <br>reliable, and efficient software.</li>
-                        </div>
-                    </div>
+                <ul class="nav flex-column m-0 p-3" id="messages">
+                    <!-- <div class="card mb-1">
+                         <div class="container">
+                         <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">
+                         <li class="nav-item mb-2 d-inline">this is comment... </li>
+                         </div>
+                         </div> -->
                 </ul>
             </nav>
             <!-- メインコンテンツ -->
@@ -76,23 +78,7 @@
                 <!-- コンテンツ -->
                 <div class="p-3">
                     <div class="d-flex flex-row">
-                        <iframe style="width: 100%; height: 90vh;" src="http://localhost:8081/golang/go"/>
-                        <div class="card mx-1" style="max-width: 15rem;">
-                            <img src="https://office54.net/static/image/252/outlook-receive.png" alt="img" class="card-img-top">
-                            <div class="card-body">
-                                <h4 class="card-title">カードの見出し</h4>
-                                <p class="card-text">カードの内容</p>
-                                <a href="#" class="btn btn-primary stretched-link">ボタン</a>
-                            </div>
-                        </div>
-                        <div class="card mx-1" style="max-width: 15rem;">
-                            <img src="https://office54.net/static/image/224/excel_windows.png" alt="img" class="card-img-top">
-                            <div class="card-body">
-                                <h4 class="card-title">カードの見出し</h4>
-                                <p class="card-text">カードの内容</p>
-                                <a href="#" class="btn btn-primary stretched-link">ボタン</a>
-                            </div>
-                        </div>
+                        <iframe style="width: 100%; height: 90vh;" src="http://localhost:8081/golang/go" id="x-iframe" />
                     </div>
                 </div>
             </main>
