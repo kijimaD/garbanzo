@@ -20,6 +20,7 @@ type room struct {
 	wsClients map[*wsClient]bool
 	// tracerは操作のログを受け取る
 	tracer trace.Tracer
+	events Events
 }
 
 func newRoom() *room {
@@ -29,6 +30,7 @@ func newRoom() *room {
 		leave:     make(chan *wsClient),
 		wsClients: make(map[*wsClient]bool),
 		tracer:    trace.Off(), // デフォルトではログ出力はされない
+		events:    make(Events),
 	}
 }
 
@@ -83,24 +85,32 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	defer func() { r.leave <- wsc }()
 	go wsc.write() // c.sendの内容をwebsocketに書き込む
 
+	// TODO: 無限ループに対応してない
 	var once sync.Once
 	f := func() {
-		s := newStore()
-		gh := newGitHub()
-		err = gh.getNotifications(s)
-		if err != nil {
-			return
-		}
-		err = gh.processNotification(s)
-		if err != nil {
-			return
-		}
-		for _, v := range s.events {
+		for _, v := range r.events {
 			r.forward <- v
 		}
 	}
 	once.Do(f)
 
 	wsc.read() // 接続は保持され、終了を指示されるまで他の処理をブロックする
+	return nil
+}
+
+func (r *room) initEvent() error {
+	s := newStore()
+	gh := newGitHub()
+	err := gh.getNotifications(s)
+	if err != nil {
+		panic(err)
+	}
+	err = gh.processNotification(s)
+	if err != nil {
+		panic(err)
+	}
+	for k, v := range s.events {
+		r.events[k] = v
+	}
 	return nil
 }

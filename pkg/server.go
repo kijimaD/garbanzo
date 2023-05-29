@@ -28,13 +28,13 @@ func NewRouter(templDir string) *echo.Echo {
 
 	room := newRoom()
 	room.tracer = trace.New(os.Stdout)
+	room.initEvent()
 	go room.run()
 
 	e := echo.New()
 	e.Renderer = renderer
 	e.GET("/", rootHandler)
 	e.GET("/ws", room.handleWebSocket)
-
 	return e
 }
 
