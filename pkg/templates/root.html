@@ -2,6 +2,34 @@
     <head>
         <title>ビューワ</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script>
+         $(function() {
+             var socket = null;
+             var messages = $("#messages");
+             if (!window["WebSocket"]) {
+                 alert("エラー: WebSocketに対応していないブラウザです")
+             } else {
+                 socket = new WebSocket("ws://{{.Host}}/ws"); /* r.Hostのこと。rはecho.Request() */
+                 socket.onclose = function() {
+                     alert("接続が終了しました");
+                 }
+                 socket.onmessage = function(e) {
+                     var msg = JSON.parse(e.data)
+                     messages.append(
+                         $("<li>").append(
+                             $("<img>").css({
+                                 width: 50,
+                                 verticalAlign: "middle",
+                             }).attr("src", msg.AvatarURL),
+                             $("<strong>").text(msg.Name + ": "),
+                             $("<span>").text(msg.Message)
+                         )
+                     );
+                 }
+             }
+         });
+        </script>
     </head>
     <body class="h-100">
         <div class="d-flex flex-row w-100" style="height: calc(100% - 50px)">
@@ -19,6 +47,7 @@
                         <div class="container">
                             <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">
                             <li class="nav-item mb-2 d-inline">this is comment... </li>
+                            <p id="messages">empty</p>
                         </div>
                     </div>
                     <div class="card mb-1">

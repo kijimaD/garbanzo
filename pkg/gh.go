@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"time"
 
 	"github.com/google/go-github/v48/github"
 	"golang.org/x/oauth2"
@@ -58,6 +59,7 @@ func (gh *GitHub) processNotification(s *store) error {
 
 		id := notificationID(*n.ID)
 		s.events[id] = event
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	return nil

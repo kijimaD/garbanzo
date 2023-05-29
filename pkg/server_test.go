@@ -24,6 +24,7 @@ func TestRootHandler(t *testing.T) {
 	assert.Contains(t, string(respBody), "ビューワ")
 }
 
+// Proxy Server.
 func TestGHHandler(t *testing.T) {
 	router := NewProxyRouter()
 	testServer := httptest.NewServer(router)
