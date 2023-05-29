@@ -4,20 +4,30 @@ import (
 	"log"
 
 	"github.com/gorilla/websocket"
+	"github.com/kijimaD/garbanzo/trace"
 	"github.com/labstack/echo/v4"
 )
 
 type room struct {
 	// forwardはクライアントに転送するためのメッセージを保持するためのチャネル
 	forward chan *Event
-	// clientsには在室しているすべてのクライアントが保持される
-	clients map[*wsClient]bool
+	// joinはクライアントの接続要求を保持するためのチャネル
+	join chan *wsClient
+	// leaveは切断しようとしているクライアントのためのチャネル
+	leave chan *wsClient
+	// wsClientsには接続しているすべてのクライアントが保持される
+	wsClients map[*wsClient]bool
+	// tracerは操作のログを受け取る
+	tracer trace.Tracer
 }
 
 func newRoom() *room {
 	return &room{
-		forward: make(chan *Event),
-		clients: make(map[*wsClient]bool),
+		forward:   make(chan *Event),
+		join:      make(chan *wsClient),
+		leave:     make(chan *wsClient),
+		wsClients: make(map[*wsClient]bool),
+		tracer:    trace.Off(), // デフォルトではログ出力はされない
 	}
 }
 
@@ -31,15 +41,24 @@ var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBuffer
 func (r *room) run() {
 	for {
 		select {
+		case wsClient := <-r.join:
+			// 参加
+			r.wsClients[wsClient] = true
+			r.tracer.Trace("join client")
+		case wsClient := <-r.leave:
+			// 退室
+			delete(r.wsClients, wsClient)
+			close(wsClient.send)
+			r.tracer.Trace("leave client")
 		case msg := <-r.forward:
-			for client := range r.clients {
+			for wsClient := range r.wsClients {
 				select {
-				case client.send <- msg:
+				case wsClient.send <- msg:
 					// メッセージを送信
 				default:
 					// 送信に失敗
-					delete(r.clients, client)
-					close(client.send)
+					delete(r.wsClients, wsClient)
+					close(wsClient.send)
 				}
 			}
 		}
@@ -58,6 +77,8 @@ func (r *room) handleWebSocket(c echo.Context) error {
 		send:   make(chan *Event, messageBufferSize),
 	}
 
+	r.join <- wsc
+	defer func() { r.leave <- wsc }()
 	go wsc.write() // c.sendの内容をwebsocketに書き込む
 	wsc.read()     // 接続は保持され、終了を指示されるまで他の処理をブロックする
 

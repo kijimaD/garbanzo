@@ -13,3 +13,7 @@ $ go install github.com/kijimaD/garbanzo@main
 ```
 $ docker run -v "$PWD/":/work -w /work --rm -it ghcr.io/kijimad/garbanzo:latest
 ```
+
+## Reference
+
+WebSocketまわりは[O'Reilly Japan \- Go言語によるWebアプリケーション開発](https://www.oreilly.co.jp/books/9784873117522/)のチャットルームのコードを参考にした。

@@ -4,7 +4,9 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"os"
 
+	trace "github.com/kijimaD/garbanzo/trace"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,6 +27,7 @@ func NewRouter(templDir string) *echo.Echo {
 	}
 
 	room := newRoom()
+	room.tracer = trace.New(os.Stdout)
 	go room.run()
 
 	e := echo.New()
