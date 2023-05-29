@@ -1,12 +1,22 @@
 # garbanzo
 
-![image](https://github.com/kijimaD/garbanzo/assets/11595790/e4acc4ce-4bc6-45c4-a5c7-0a18a273835f)
+![image](https://github.com/kijimaD/garbanzo/assets/11595790/f4843b2c-1ec2-486c-9ce2-f2c5e76cacaf)
 
 ## install
 
 ```
 $ go install github.com/kijimaD/garbanzo@main
 ```
+
+## how to use
+
+Need GitHub Token(notification scope). Token is used to fetch user notification.
+
+```
+$ GH_TOKEN=xxx garbanzo
+```
+
+and, access http://localhost:8080
 
 ## docker run
 

@@ -109,7 +109,7 @@ func (gh *GitHub) getEvent(n *github.Notification) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlURL := PROXY_URL + h.Path
+	htmlURL := PROXY_URL + h.Path + "#" + h.Fragment
 
 	event := newEvent(
 		*n.ID,
