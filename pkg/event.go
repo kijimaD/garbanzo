@@ -6,20 +6,19 @@ type notificationID string
 
 // Eventはフロント側で1つ1つの通知表示に必要な項目
 type Event struct {
-	NotificationID string
-	UserName       string
-	AvatarURL      string
-	Title          string
-	Body           string
-	HTMLURL        string
-	LatestURL      string
-	RepoName       string
-	When           time.Time
+	NotificationID string    // 通知ID
+	UserName       string    // GitHubユーザの名前
+	AvatarURL      string    // GitHubユーザのアイコン画像
+	Title          string    // 通知のタイトル
+	Body           string    // 通知の本文
+	HTMLURL        string    // iframe遷移に使う、ホストがリバースプロキシ先で置き換えられたURL
+	RepoName       string    // フルリポジトリ名 golang/go
+	When           time.Time // 更新時間(updated_at)
 }
 
 type Events map[notificationID]*Event
 
-func newEvent(notificationID string, userName string, avatarURL string, title string, body string, HTMLURL string, latestURL string, repoName string, when time.Time) *Event {
+func newEvent(notificationID string, userName string, avatarURL string, title string, body string, HTMLURL string, repoName string, when time.Time) *Event {
 	return &Event{
 		NotificationID: notificationID,
 		UserName:       userName,
@@ -27,7 +26,6 @@ func newEvent(notificationID string, userName string, avatarURL string, title st
 		Title:          title,
 		Body:           body,
 		HTMLURL:        HTMLURL,
-		LatestURL:      latestURL,
 		RepoName:       repoName,
 		When:           when,
 	}

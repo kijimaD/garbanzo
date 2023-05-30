@@ -16,13 +16,10 @@
                  }
                  socket.onmessage = function(e) {
                      var msg = JSON.parse(e.data)
-                     var newLink = $('<a></a>', {
-                         href: msg.LatestURL,
-                     });
 
                      // DOMを追加する
                      messages.append(
-                         $("<button>").addClass("border mb-1 text-start text-dark btn btn-outline-primary")
+                         $("<button>").addClass("border mb-1 text-start text-dark btn btn-outline-light")
                                       .css({maxWidth: 480})
                                       .attr("id","x-notification-link-"+msg.NotificationID, "type", "button")
                                       .append(
@@ -51,7 +48,6 @@
                          $('#x-notification-link-'+msg.NotificationID).click(function() {
                              var iframe = document.getElementById('x-iframe');
                              iframe.src = msg.HTMLURL;
-                             $("#x-notification-link").append(newLink);
                          });
                      });
                  }
@@ -62,7 +58,7 @@
     <body class="h-100">
         <div class="d-flex flex-row">
             <!-- サイドメニュー -->
-            <nav class="bg-light" style="width: 800px; overflow-y: scroll; height: 100vh;">
+            <nav class="bg-white" style="width: 800px; overflow-y: scroll; height: 100vh;">
                 <header class="bg-light px-3 py-0">
                     <!-- ヘッダーの内容 -->
                     <h1 class="fs-2 text-primary fw-bold py-0">Garbanzo</h1>

@@ -136,7 +136,6 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*issue.Title,
 		*issue.Body,
 		htmlURL,
-		*n.Subject.LatestCommentURL,
 		*n.Repository.FullName,
 		*n.UpdatedAt,
 	)
@@ -177,7 +176,6 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 		*n.Subject.Title,
 		*comment.Body,
 		htmlURL,
-		*n.Subject.LatestCommentURL,
 		*n.Repository.FullName,
 		*n.UpdatedAt,
 	)
