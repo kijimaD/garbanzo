@@ -119,6 +119,7 @@ func (gh *GitHub) getEvent(n *github.Notification) (*Event, error) {
 		*comment.Body,
 		htmlURL,
 		*n.Subject.LatestCommentURL,
+		*n.Repository.FullName,
 		*n.UpdatedAt,
 	)
 

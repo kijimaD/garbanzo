@@ -13,12 +13,13 @@ type Event struct {
 	Body           string
 	HTMLURL        string
 	LatestURL      string
+	RepoName       string
 	When           time.Time
 }
 
 type Events map[notificationID]*Event
 
-func newEvent(notificationID string, userName string, avatarURL string, title string, body string, HTMLURL string, latestURL string, when time.Time) *Event {
+func newEvent(notificationID string, userName string, avatarURL string, title string, body string, HTMLURL string, latestURL string, repoName string, when time.Time) *Event {
 	return &Event{
 		NotificationID: notificationID,
 		UserName:       userName,
@@ -27,6 +28,7 @@ func newEvent(notificationID string, userName string, avatarURL string, title st
 		Body:           body,
 		HTMLURL:        HTMLURL,
 		LatestURL:      latestURL,
+		RepoName:       repoName,
 		When:           when,
 	}
 }
