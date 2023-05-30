@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/v48/github"
@@ -68,24 +69,80 @@ func (gh *GitHub) getNotifications(s *store) error {
 	return nil
 }
 
+const ISSUES_EVENT_TYPE = "issues"
+const COMMENTS_EVENT_TYPE = "comments"
+
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification(s *store) error {
 	for _, n := range s.notifications {
-		event, err := gh.getEvent(n)
+		u, err := url.Parse(*n.Subject.LatestCommentURL)
 		if err != nil {
 			return err
 		}
+		elements := strings.Split(u.Path, "/")
+		// 最後から2番目の要素を取得する
+		secondLastElement := elements[len(elements)-2]
 
-		id := notificationID(*n.ID)
-		s.events[id] = event
-		time.Sleep(100 * time.Millisecond)
+		if secondLastElement == ISSUES_EVENT_TYPE {
+			event, err := gh.getIssueEvent(n)
+			if err != nil {
+				return err
+			}
+			id := notificationID(*n.ID)
+			s.events[id] = event
+			time.Sleep(100 * time.Millisecond)
+		} else if secondLastElement == COMMENTS_EVENT_TYPE {
+			event, err := gh.getCommentEvent(n)
+			if err != nil {
+				return err
+			}
+			id := notificationID(*n.ID)
+			s.events[id] = event
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 
 	return nil
 }
 
-func (gh *GitHub) getEvent(n *github.Notification) (*Event, error) {
+func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
+	ctx := context.Background()
+
+	u, err := url.Parse(*n.Subject.URL)
+	if err != nil {
+		return nil, err
+	}
+	issueID := path.Base(u.Path)
+	issueIDint, _ := strconv.Atoi(issueID)
+	issue, _, err := gh.Client.Issues.Get(ctx, "golang", "go", issueIDint)
+	if err != nil {
+		return nil, err
+	}
+
+	// ホストをプロキシサーバにする
+	h, err := url.Parse(*issue.HTMLURL)
+	if err != nil {
+		return nil, err
+	}
+	htmlURL := PROXY_URL + h.Path + "#" + h.Fragment
+
+	event := newEvent(
+		*n.ID,
+		*issue.User.Login,
+		*issue.User.AvatarURL,
+		*issue.Title,
+		*issue.Body,
+		htmlURL,
+		*n.Subject.LatestCommentURL,
+		*n.Repository.FullName,
+		*n.UpdatedAt,
+	)
+
+	return event, nil
+}
+
+func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	ctx := context.Background()
 
 	u, err := url.Parse(*n.Subject.LatestCommentURL)
