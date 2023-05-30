@@ -100,7 +100,7 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	}
 
 	// TODO: 無限ループに対応してない。また、読み込むたびに実行される
-	// キャッシュ取得
+	// キャッシュ保存
 	{
 		var once sync.Once
 		f := func() {
