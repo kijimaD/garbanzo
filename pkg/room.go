@@ -1,8 +1,11 @@
 package garbanzo
 
 import (
+	"io/ioutil"
 	"log"
+	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/kijimaD/garbanzo/trace"
@@ -85,14 +88,32 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	defer func() { r.leave <- wsc }()
 	go wsc.write() // c.sendの内容をwebsocketに書き込む
 
-	// TODO: 無限ループに対応してない
-	var once sync.Once
-	f := func() {
-		for _, v := range r.events {
-			r.forward <- v
+	// TODO: 無限ループに対応してない。
+	{
+		var once sync.Once
+		f := func() {
+			for _, v := range r.events {
+				r.forward <- v
+			}
 		}
+		once.Do(f)
 	}
-	once.Do(f)
+
+	// TODO: 無限ループに対応してない。また、読み込むたびに実行される
+	// キャッシュ取得
+	{
+		var once sync.Once
+		f := func() {
+			for _, v := range r.events {
+				resp, _ := http.Get(v.HTMLURL)
+				defer resp.Body.Close()
+				byteArray, _ := ioutil.ReadAll(resp.Body)
+				proxyCache[v.HTMLURL] = string(byteArray)
+				time.Sleep(time.Second * 1)
+			}
+		}
+		once.Do(f)
+	}
 
 	wsc.read() // 接続は保持され、終了を指示されるまで他の処理をブロックする
 	return nil
