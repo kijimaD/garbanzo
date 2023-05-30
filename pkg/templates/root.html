@@ -22,21 +22,21 @@
 
                      // DOMを追加する
                      messages.append(
-                         $("<button>").addClass("card mb-1 text-start")
-                                      .css({maxWidth: 500})
+                         $("<button>").addClass("border mb-1 text-start bg-white")
+                                      .css({maxWidth: 480})
                                       .attr("id","x-notification-link-"+msg.NotificationID, "type", "button")
                                       .append(
                                           $("<div>").addClass("container").append(
-                                              $("<img>").addClass("d-inline")
+                                              $("<img>").addClass("d-inline rounded-circle")
                                                         .css({
                                                             width: 40,
                                                             verticalAlign: "middle",
                                                         })
                                                         .attr("src", msg.AvatarURL),
-                                              $("<small>").text(msg.UserName + ": "),
+                                              $("<small>").text(msg.UserName),
                                               $("<h4>").text(msg.Title),
                                               $("<p>").text(msg.Body)
-                                                       .addClass("nav-item mb-2 d-inline")
+                                                      .addClass("nav-item mb-2 d-inline x-md-")
                                           )
                                       )
                      );
@@ -55,17 +55,17 @@
         </script>
     </head>
     <body class="h-100">
-        <div class="d-flex flex-row w-100" style="height: calc(100% - 50px)">
+        <div class="d-flex flex-row w-100">
             <!-- サイドメニュー -->
             <nav class="bg-light" style="width: 500px;">
-                <header class="w-100 d-flex justify-content-between align-items-center bg-light px-3">
+                <header class="w-100 bg-light px-3 py-0">
                     <!-- ヘッダーの内容 -->
-                    <h1 class="mx-2 my-0 py-0 fs-4 text-primary fw-bold">Garbanzo</h1>
+                    <h1 class="fs-2 text-primary fw-bold py-0">Garbanzo</h1>
                     <ul class="navbar-nav d-flex flex-row">
                         <!-- <li class="nav-item mx-3 text-muted active"><a href="#" class="nav-link text-secondary">Option</a></li> -->
                     </ul>
                 </header>
-                <ul class="nav flex-column m-0 p-3" id="messages">
+                <ul class="nav flex-column m-0 px-3" id="messages">
                     <!-- <div class="card mb-1">
                          <div class="container">
                          <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">
@@ -84,9 +84,9 @@
                      <div class="fs-4 fw-bold">Dashboard</div>
                      </div> -->
                 <!-- コンテンツ -->
-                <div class="p-3">
+                <div class="">
                     <div class="d-flex flex-row">
-                        <iframe style="width: 100%; height: 90vh;" src="http://localhost:8081/golang/go" id="x-iframe" />
+                        <iframe style="width: 100%; height: 100vh;" src="http://localhost:8081/golang/go" id="x-iframe" />
                     </div>
                 </div>
             </main>
