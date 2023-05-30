@@ -83,6 +83,8 @@ func (gh *GitHub) processNotification(s *store) error {
 		elements := strings.Split(u.Path, "/")
 		// 最後から2番目の要素を取得する
 		secondLastElement := elements[len(elements)-2]
+		// comment /issues/comments/xxxxxxxx
+		// issue open /issue/xxxxx
 
 		if secondLastElement == ISSUES_EVENT_TYPE {
 			event, err := gh.getIssueEvent(n)
