@@ -1,6 +1,6 @@
 # garbanzo
 
-![image](https://github.com/kijimaD/garbanzo/assets/11595790/1ca86010-e7aa-4984-8c02-4752bbefa41f)
+![image](https://github.com/kijimaD/garbanzo/assets/11595790/77118b7f-cf66-4493-99fa-5063c52a6bca)
 
 ## install
 
