@@ -2,8 +2,6 @@ package garbanzo
 
 import "time"
 
-type notificationID string
-
 // Eventはフロント側で1つ1つの通知表示に必要な項目
 type Event struct {
 	NotificationID string    // 通知ID
@@ -16,7 +14,7 @@ type Event struct {
 	When           time.Time // 更新時間(updated_at)
 }
 
-type Events map[notificationID]*Event
+type Events map[string]*Event // keyにNotificationIDを使う
 
 func newEvent(notificationID string, userName string, avatarURL string, title string, body string, HTMLURL string, repoName string, when time.Time) *Event {
 	return &Event{

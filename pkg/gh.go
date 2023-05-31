@@ -62,8 +62,7 @@ func (gh *GitHub) getNotifications(s *store) error {
 	}
 
 	for _, n := range ns {
-		id := notificationID(*n.ID)
-		s.notifications[id] = n
+		s.notifications[*n.ID] = n
 	}
 
 	return nil
@@ -91,17 +90,13 @@ func (gh *GitHub) processNotification(s *store) error {
 			if err != nil {
 				return err
 			}
-			id := notificationID(*n.ID)
-			s.events[id] = event
-			time.Sleep(100 * time.Millisecond)
+			s.events[*n.ID] = event
 		} else if secondLastElement == COMMENTS_EVENT_TYPE {
 			event, err := gh.getCommentEvent(n)
 			if err != nil {
 				return err
 			}
-			id := notificationID(*n.ID)
-			s.events[id] = event
-			time.Sleep(100 * time.Millisecond)
+			s.events[*n.ID] = event
 		}
 	}
 
