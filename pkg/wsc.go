@@ -23,6 +23,7 @@ func (wsc *wsClient) read() {
 func (wsc *wsClient) write() {
 	for send := range wsc.send {
 		// doneに存在しないときだけ書き込み
+		// FIXME: そもそも条件を見てsendに送ってこなければいい
 		if _, exist := wsc.done[send.NotificationID]; !exist {
 			err := wsc.socket.WriteJSON(send)
 			if err != nil {

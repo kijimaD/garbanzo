@@ -43,10 +43,12 @@ const (
 
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
+const syncSecond = 2
+
 func (r *room) run() {
 	// r.eventsをクライアントと同期する
 	go func() {
-		t := time.NewTicker(5 * time.Second) // 5秒おきに実行
+		t := time.NewTicker(syncSecond * time.Second)
 		defer t.Stop()
 		for {
 			select {
@@ -122,14 +124,11 @@ func (r *room) initEvent() error {
 	gh := newGitHub()
 	err := gh.getNotifications()
 	if err != nil {
-		panic(err)
+		return err
 	}
-	err = gh.processNotification()
+	err = gh.processNotification(r.events)
 	if err != nil {
-		panic(err)
-	}
-	for k, v := range gh.events {
-		r.events[k] = v
+		return err
 	}
 	return nil
 }

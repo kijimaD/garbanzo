@@ -79,7 +79,7 @@ const COMMENTS_EVENT_TYPE = "comments"
 
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
-func (gh *GitHub) processNotification() error {
+func (gh *GitHub) processNotification(es Events) error {
 	for _, n := range gh.notifications {
 		u, err := url.Parse(*n.Subject.LatestCommentURL)
 		if err != nil {
@@ -96,13 +96,13 @@ func (gh *GitHub) processNotification() error {
 			if err != nil {
 				return err
 			}
-			gh.events[*n.ID] = event
+			es[*n.ID] = event
 		} else if secondLastElement == COMMENTS_EVENT_TYPE {
 			event, err := gh.getCommentEvent(n)
 			if err != nil {
 				return err
 			}
-			gh.events[*n.ID] = event
+			es[*n.ID] = event
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
