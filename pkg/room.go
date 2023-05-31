@@ -44,6 +44,21 @@ const (
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
 func (r *room) run() {
+	// r.eventsをクライアントと同期する
+	go func() {
+		t := time.NewTicker(5 * time.Second) // 5秒おきに実行
+		defer t.Stop()
+		for {
+			select {
+			case <-t.C:
+				go func() {
+					for _, v := range r.events {
+						r.forward <- v
+					}
+				}()
+			}
+		}
+	}()
 	for {
 		select {
 		case wsClient := <-r.join:
@@ -81,18 +96,12 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	wsc := &wsClient{
 		socket: socket,
 		send:   make(chan *Event, messageBufferSize),
+		done:   make(map[string]bool),
 	}
 
 	r.join <- wsc
 	defer func() { r.leave <- wsc }()
 	go wsc.write() // c.sendの内容をwebsocketに書き込む
-
-	// 初回実行
-	go func() {
-		for _, v := range r.events {
-			r.forward <- v
-		}
-	}()
 
 	// キャッシュ保存
 	go func() {

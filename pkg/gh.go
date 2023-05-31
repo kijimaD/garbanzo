@@ -98,6 +98,7 @@ func (gh *GitHub) processNotification(s *store) error {
 			}
 			s.events[*n.ID] = event
 		}
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	return nil
