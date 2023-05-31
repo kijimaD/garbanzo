@@ -3,6 +3,7 @@ package garbanzo
 import "time"
 
 // Eventはフロント側で1つ1つの通知表示に必要な項目
+// 将来的にGitHubだけじゃなくなるかもなので、汎用的にしておく
 type Event struct {
 	NotificationID string    // 通知ID
 	UserName       string    // GitHubユーザの名前

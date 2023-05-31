@@ -11,6 +11,7 @@ type wsClient struct {
 	send chan *Event
 }
 
+// 無限ループで待機
 func (wsc *wsClient) read() {
 	for {
 	}

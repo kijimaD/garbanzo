@@ -59,7 +59,7 @@ func (r *room) run() {
 			for wsClient := range r.wsClients {
 				select {
 				case wsClient.send <- forward:
-					// メッセージを送信
+					// roomごとのEventsをwsClientごとのEventsと同期する
 					r.tracer.Trace("send message to client: " + forward.NotificationID)
 				default:
 					// 送信に失敗
