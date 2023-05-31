@@ -40,7 +40,9 @@ type clientI interface {
 	getNotifications() error
 }
 type GitHub struct {
-	Client *github.Client
+	Client        *github.Client
+	notifications map[string]*github.Notification
+	events        Events
 }
 
 func newGitHub() *GitHub {
@@ -50,11 +52,15 @@ func newGitHub() *GitHub {
 	)
 	tc := oauth2.NewClient(ctx, sts)
 	client := github.NewClient(tc)
-	return &GitHub{Client: client}
+	return &GitHub{
+		Client:        client,
+		notifications: make(map[string]*github.Notification),
+		events:        Events{},
+	}
 }
 
 // issueが開かれたときに対応してない。その場合は、LatestCommentURLにコメントIDではなく、issue IDが入る。
-func (gh *GitHub) getNotifications(s *store) error {
+func (gh *GitHub) getNotifications() error {
 	ctx := context.Background()
 	ns, _, err := gh.Client.Activity.ListRepositoryNotifications(ctx, "golang", "go", nil)
 	if err != nil {
@@ -62,7 +68,7 @@ func (gh *GitHub) getNotifications(s *store) error {
 	}
 
 	for _, n := range ns {
-		s.notifications[*n.ID] = n
+		gh.notifications[*n.ID] = n
 	}
 
 	return nil
@@ -73,8 +79,8 @@ const COMMENTS_EVENT_TYPE = "comments"
 
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
-func (gh *GitHub) processNotification(s *store) error {
-	for _, n := range s.notifications {
+func (gh *GitHub) processNotification() error {
+	for _, n := range gh.notifications {
 		u, err := url.Parse(*n.Subject.LatestCommentURL)
 		if err != nil {
 			return err
@@ -90,13 +96,13 @@ func (gh *GitHub) processNotification(s *store) error {
 			if err != nil {
 				return err
 			}
-			s.events[*n.ID] = event
+			gh.events[*n.ID] = event
 		} else if secondLastElement == COMMENTS_EVENT_TYPE {
 			event, err := gh.getCommentEvent(n)
 			if err != nil {
 				return err
 			}
-			s.events[*n.ID] = event
+			gh.events[*n.ID] = event
 		}
 		time.Sleep(500 * time.Millisecond)
 	}

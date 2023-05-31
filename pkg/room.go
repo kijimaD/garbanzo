@@ -119,17 +119,16 @@ func (r *room) handleWebSocket(c echo.Context) error {
 }
 
 func (r *room) initEvent() error {
-	s := newStore()
 	gh := newGitHub()
-	err := gh.getNotifications(s)
+	err := gh.getNotifications()
 	if err != nil {
 		panic(err)
 	}
-	err = gh.processNotification(s)
+	err = gh.processNotification()
 	if err != nil {
 		panic(err)
 	}
-	for k, v := range s.events {
+	for k, v := range gh.events {
 		r.events[k] = v
 	}
 	return nil
