@@ -1,6 +1,7 @@
 package garbanzo
 
 import (
+	"embed"
 	"html/template"
 	"io"
 	"net/http"
@@ -9,6 +10,9 @@ import (
 	trace "github.com/kijimaD/garbanzo/trace"
 	"github.com/labstack/echo/v4"
 )
+
+//go:embed templates
+var f embed.FS
 
 type TemplateRenderer struct {
 	templates *template.Template
@@ -23,7 +27,7 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 
 func NewRouter(templDir string) *echo.Echo {
 	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseGlob(templDir)),
+		templates: template.Must(template.ParseFS(f, templDir)),
 	}
 
 	room := newRoom()

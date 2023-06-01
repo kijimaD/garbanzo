@@ -10,7 +10,7 @@ $ go install github.com/kijimaD/garbanzo@main
 
 ## how to use
 
-Need GitHub Personal Access Token(**notification scope**). Token is used to fetch users notification.
+Need GitHub Personal Access Token(**notification scope**). Token is used to fetch users notifications.
 
 ```
 $ GH_TOKEN=xxx garbanzo
@@ -21,7 +21,7 @@ and, access http://localhost:8080
 ## docker run
 
 ```
-$ docker run -v "$PWD/":/work -w /work --rm -it ghcr.io/kijimad/garbanzo:latest
+$ docker run --rm -it --env GH_TOKEN=xxx -p 8080:8080 -p 8081:8081 ghcr.io/kijimad/garbanzo:latest
 ```
 
 ## image

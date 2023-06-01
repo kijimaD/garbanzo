@@ -19,10 +19,7 @@ RUN GO111MODULE=on CGO_ENABLED=0 go build -o ./bin/garbanzo \
 # release #
 ###########
 
-FROM golang:1.20-buster AS release
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    git
+FROM gcr.io/distroless/static-debian11:latest AS release
 
 COPY --from=builder /build/bin/garbanzo /bin/
 WORKDIR /workdir
