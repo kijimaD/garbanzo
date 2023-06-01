@@ -1,6 +1,6 @@
 # garbanzo
 
-[screencast-localhost_8080-2023.06.01-01_46_19.webm](https://github.com/kijimaD/garbanzo/assets/11595790/c3706cf7-f450-4b33-8b5f-0988cd20642c)
+[screencast-localhost_8080-2023.06.01-23_58_00.webm](https://github.com/kijimaD/garbanzo/assets/11595790/8262a979-49fa-4bee-8bf2-58e7268060a8)
 
 ## how to use
 
