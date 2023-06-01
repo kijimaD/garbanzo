@@ -74,6 +74,9 @@ func (r *room) run() {
 			r.tracer.Trace("leave client")
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
+				if _, exist := wsClient.done[forward.NotificationID]; exist {
+					continue
+				}
 				select {
 				case wsClient.send <- forward:
 					// roomごとのEventsをwsClientごとのEventsと同期する
