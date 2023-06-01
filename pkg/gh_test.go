@@ -9,41 +9,39 @@ import (
 )
 
 func TestGetNotifications(t *testing.T) {
-	s := newStore()
 	gh := newGitHub()
-	err := gh.getNotifications(s)
+	err := gh.getNotifications()
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, true, len(s.notifications) > 0)
+	assert.Equal(t, true, len(gh.notifications) > 0)
 }
 
 func TestGetNotificationsDup(t *testing.T) {
-	s := newStore()
 	gh := newGitHub()
-	err := gh.getNotifications(s)
+	err := gh.getNotifications()
 	if err != nil {
 		t.Error(err)
 	}
 
 	// 同じ通知は追加しない
-	count := len(s.notifications)
-	gh.getNotifications(s)
-	gh.getNotifications(s)
-	assert.Equal(t, count, len(s.notifications))
+	count := len(gh.notifications)
+	gh.getNotifications()
+	gh.getNotifications()
+	assert.Equal(t, count, len(gh.notifications))
 }
 
 func TestProcess(t *testing.T) {
-	s := newStore()
 	gh := newGitHub()
-	err := gh.getNotifications(s)
+	err := gh.getNotifications()
+	events := make(Events)
 	if err != nil {
 		t.Error(err)
 	}
-	err = gh.processNotification(s)
+	err = gh.processNotification(events)
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, true, len(s.events) > 0)
-	assert.Equal(t, len(s.events), len(s.notifications))
+	assert.Equal(t, true, len(events) > 0)
+	assert.Equal(t, len(events), len(gh.notifications))
 }

@@ -44,7 +44,27 @@ const (
 
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
+const syncSecond = 2
+
 func (r *room) run() {
+	mu := &sync.Mutex{}
+	// r.eventsをクライアントと同期する
+	go func() {
+		t := time.NewTicker(syncSecond * time.Second)
+		defer t.Stop()
+		for {
+			select {
+			case <-t.C:
+				go func() {
+					mu.Lock()
+					for _, v := range r.events {
+						r.forward <- v
+					}
+					mu.Unlock()
+				}()
+			}
+		}
+	}()
 	for {
 		select {
 		case wsClient := <-r.join:
@@ -58,10 +78,13 @@ func (r *room) run() {
 			r.tracer.Trace("leave client")
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
+				if _, exist := wsClient.done[forward.NotificationID]; exist {
+					continue
+				}
 				select {
 				case wsClient.send <- forward:
-					// メッセージを送信
-					r.tracer.Trace("send message to client")
+					// roomごとのEventsをwsClientごとのEventsと同期する
+					r.tracer.Trace("send message to client: " + forward.NotificationID)
 				default:
 					// 送信に失敗
 					delete(r.wsClients, wsClient)
@@ -82,56 +105,40 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	wsc := &wsClient{
 		socket: socket,
 		send:   make(chan *Event, messageBufferSize),
+		done:   make(map[string]bool),
 	}
 
 	r.join <- wsc
 	defer func() { r.leave <- wsc }()
 	go wsc.write() // c.sendの内容をwebsocketに書き込む
 
-	// TODO: 無限ループに対応してない。
-	{
-		var once sync.Once
-		f := func() {
-			for _, v := range r.events {
-				r.forward <- v
-			}
-		}
-		once.Do(f)
-	}
-
-	// TODO: 無限ループに対応してない。また、読み込むたびに実行される
 	// キャッシュ保存
-	{
-		var once sync.Once
-		f := func() {
-			for _, v := range r.events {
-				resp, _ := http.Get(v.HTMLURL)
-				defer resp.Body.Close()
-				byteArray, _ := ioutil.ReadAll(resp.Body)
-				proxyCache[v.HTMLURL] = string(byteArray)
-				time.Sleep(time.Second * 1)
-			}
+	go func() {
+		for _, v := range r.events {
+			resp, _ := http.Get(v.HTMLURL)
+			defer resp.Body.Close()
+			byteArray, _ := ioutil.ReadAll(resp.Body)
+			proxyCache[v.HTMLURL] = string(byteArray)
+			time.Sleep(time.Second * 1)
 		}
-		once.Do(f)
-	}
+	}()
 
 	wsc.read() // 接続は保持され、終了を指示されるまで他の処理をブロックする
 	return nil
 }
 
 func (r *room) initEvent() error {
-	s := newStore()
+	mu := &sync.Mutex{}
 	gh := newGitHub()
-	err := gh.getNotifications(s)
+	err := gh.getNotifications()
 	if err != nil {
-		panic(err)
+		return err
 	}
-	err = gh.processNotification(s)
+	mu.Lock()
+	err = gh.processNotification(r.events)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	for k, v := range s.events {
-		r.events[k] = v
-	}
+	mu.Unlock()
 	return nil
 }

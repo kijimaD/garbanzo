@@ -1,6 +1,6 @@
 # garbanzo
 
-![image](https://github.com/kijimaD/garbanzo/assets/11595790/77118b7f-cf66-4493-99fa-5063c52a6bca)
+[screencast-localhost_8080-2023.06.01-01_46_19.webm](https://github.com/kijimaD/garbanzo/assets/11595790/c3706cf7-f450-4b33-8b5f-0988cd20642c)
 
 ## install
 
@@ -10,7 +10,7 @@ $ go install github.com/kijimaD/garbanzo@main
 
 ## how to use
 
-Need GitHub Token(notification scope). Token is used to fetch user notification.
+Need GitHub Personal Access Token(**notification scope**). Token is used to fetch users notification.
 
 ```
 $ GH_TOKEN=xxx garbanzo
