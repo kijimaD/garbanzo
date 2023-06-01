@@ -134,6 +134,9 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	}
 	htmlURL := PROXY_URL + h.Path + "#" + h.Fragment
 
+	// 日付形式
+	updatedAt := n.UpdatedAt.Format("2006-01-02")
+
 	event := newEvent(
 		*n.ID,
 		*issue.User.Login,
@@ -142,7 +145,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*issue.Body,
 		htmlURL,
 		*n.Repository.FullName,
-		*n.UpdatedAt,
+		updatedAt,
 	)
 
 	return event, nil
@@ -173,6 +176,9 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	}
 	htmlURL := PROXY_URL + h.Path + "#" + h.Fragment
 
+	// 日付形式
+	updatedAt := n.UpdatedAt.Format("2006-01-02 15:04")
+
 	event := newEvent(
 		*n.ID,
 		*comment.User.Login,
@@ -181,7 +187,7 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 		*comment.Body,
 		htmlURL,
 		*n.Repository.FullName,
-		*n.UpdatedAt,
+		updatedAt,
 	)
 
 	return event, nil

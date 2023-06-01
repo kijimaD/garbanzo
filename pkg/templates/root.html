@@ -31,10 +31,15 @@
                                                         })
                                                         .attr("src", msg.AvatarURL),
                                               $("<small>").text(msg.UserName),
-                                              $("<div>").addClass("text-right text-end").append(
-                                                  $("<span>").text(msg.RepoName)
-                                                             .addClass("badge bg-primary"),
-                                              ),
+                                              $("<span>").text(msg.RepoName)
+                                                         .addClass("badge bg-primary")
+                                                         .css({
+                                                             float: "right",
+                                                         }),
+                                              $("<small>").text(msg.When)
+                                                          .css({
+                                                              float: "right",
+                                                          }),
                                               $("<h4>").text(msg.Title)
                                                        .addClass("fw-bold"),
                                               $("<p>").text(msg.Body)
