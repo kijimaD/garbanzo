@@ -62,7 +62,7 @@ func newGitHub() *GitHub {
 // issueが開かれたときに対応してない。その場合は、LatestCommentURLにコメントIDではなく、issue IDが入る。
 func (gh *GitHub) getNotifications() error {
 	ctx := context.Background()
-	ns, _, err := gh.Client.Activity.ListRepositoryNotifications(ctx, "golang", "go", nil)
+	ns, _, err := gh.Client.Activity.ListNotifications(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -81,6 +81,9 @@ const COMMENTS_EVENT_TYPE = "comments"
 // 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification(es Events) error {
 	for _, n := range gh.notifications {
+		if n.Subject.LatestCommentURL == nil {
+			continue
+		}
 		u, err := url.Parse(*n.Subject.LatestCommentURL)
 		if err != nil {
 			return err
@@ -119,7 +122,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	}
 	issueID := path.Base(u.Path)
 	issueIDint, _ := strconv.Atoi(issueID)
-	issue, _, err := gh.Client.Issues.Get(ctx, "golang", "go", issueIDint)
+	issue, _, err := gh.Client.Issues.Get(ctx, *n.Repository.Owner.Login, *n.Repository.Name, issueIDint)
 	if err != nil {
 		return nil, err
 	}
@@ -158,8 +161,7 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	comment, _, err := gh.Client.Issues.GetComment(ctx, "golang", "go", IDint64)
+	comment, _, err := gh.Client.Issues.GetComment(ctx, *n.Repository.Owner.Login, *n.Repository.Name, IDint64)
 	if err != nil {
 		return nil, err
 	}
