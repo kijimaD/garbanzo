@@ -12,6 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 	"github.com/google/go-github/v48/github"
 	"github.com/kelseyhightower/envconfig"
 	"golang.org/x/oauth2"
@@ -137,12 +140,15 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	// 日付形式
 	updatedAt := n.UpdatedAt.Format("2006-01-02")
 
+	md := []byte(*issue.Body)
+	htmlBody := mdToHTML(md)
+
 	event := newEvent(
 		*n.ID,
 		*issue.User.Login,
 		*issue.User.AvatarURL,
 		*issue.Title,
-		*issue.Body,
+		string(htmlBody),
 		htmlURL,
 		*n.Repository.FullName,
 		updatedAt,
@@ -179,16 +185,33 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	// 日付形式
 	updatedAt := n.UpdatedAt.Format("2006-01-02 15:04")
 
+	md := []byte(*comment.Body)
+	htmlBody := mdToHTML(md)
+
 	event := newEvent(
 		*n.ID,
 		*comment.User.Login,
 		*comment.User.AvatarURL,
 		*n.Subject.Title,
-		*comment.Body,
+		string(htmlBody),
 		htmlURL,
 		*n.Repository.FullName,
 		updatedAt,
 	)
 
 	return event, nil
+}
+
+func mdToHTML(md []byte) []byte {
+	// create markdown parser with extensions
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(md)
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	return markdown.Render(doc, renderer)
 }
