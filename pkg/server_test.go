@@ -10,7 +10,7 @@ import (
 )
 
 func TestRootHandler(t *testing.T) {
-	router := NewRouter("templates/*.html")
+	router := NewRouter("templates/*.html", "static/*")
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
 
@@ -22,6 +22,19 @@ func TestRootHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, string(respBody), "Garbanzo")
+}
+
+func TestFaviconHandler(t *testing.T) {
+	router := NewRouter("templates/*.html", "static/*")
+	testServer := httptest.NewServer(router)
+	defer testServer.Close()
+
+	req, _ := http.NewRequest("GET", testServer.URL+"/favicon.ico", nil)
+
+	client := new(http.Client)
+	resp, _ := client.Do(req)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 // Proxy Server.
