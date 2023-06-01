@@ -6,6 +6,8 @@ import (
 	"runtime"
 	"strconv"
 
+	_ "embed"
+
 	"github.com/kelseyhightower/envconfig"
 	garbanzo "github.com/kijimaD/garbanzo/pkg"
 )
@@ -25,7 +27,7 @@ func main() {
 	}
 
 	go func() {
-		router := garbanzo.NewRouter("pkg/templates/*.html")
+		router := garbanzo.NewRouter("templates/*.html")
 		router.Start(":" + strconv.FormatUint(uint64(env.AppPort), 10))
 	}()
 
