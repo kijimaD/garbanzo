@@ -38,14 +38,15 @@
                                                       .css({
                                                           float: "right",
                                                       }),
-                                              $("<small>").text(msg.When)
-                                                          .css({
-                                                              float: "right",
-                                                          }),
                                               $("<h4>").text(msg.Title)
                                                        .addClass("fw-bold"),
                                               $("<p>").html(msg.Body)
-                                                      .addClass("nav-item mb-2 d-inline")
+                                                      .addClass("nav-item mb-2 d-inline"),
+                                              $("<small>").text(msg.When)
+                                                          .addClass("text-secondary")
+                                                          .css({
+                                                              float: "right",
+                                                          }),
                                           )
                                       )
                      );
