@@ -21,7 +21,7 @@ func TestRootHandler(t *testing.T) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, string(respBody), "ビューワ")
+	assert.Contains(t, string(respBody), "Garbanzo")
 }
 
 // Proxy Server.
