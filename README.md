@@ -2,19 +2,21 @@
 
 [screencast-localhost_8080-2023.06.01-01_46_19.webm](https://github.com/kijimaD/garbanzo/assets/11595790/c3706cf7-f450-4b33-8b5f-0988cd20642c)
 
-## install
+## how to use
+
+Install
 
 ```
 $ go install github.com/kijimaD/garbanzo@main
 ```
 
-## how to use
-
-Need GitHub Personal Access Token(**notification scope**). Token is used to fetch users notifications.
+Run
 
 ```
 $ GH_TOKEN=xxx garbanzo
 ```
+
+Need GitHub Personal Access Token(**notification scope**)! Token is used to fetch users notifications.
 
 and, access http://localhost:8080
 
