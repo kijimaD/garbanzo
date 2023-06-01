@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -46,6 +47,7 @@ var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBuffer
 const syncSecond = 2
 
 func (r *room) run() {
+	mu := &sync.Mutex{}
 	// r.eventsをクライアントと同期する
 	go func() {
 		t := time.NewTicker(syncSecond * time.Second)
@@ -54,9 +56,11 @@ func (r *room) run() {
 			select {
 			case <-t.C:
 				go func() {
+					mu.Lock()
 					for _, v := range r.events {
 						r.forward <- v
 					}
+					mu.Unlock()
 				}()
 			}
 		}
@@ -124,14 +128,17 @@ func (r *room) handleWebSocket(c echo.Context) error {
 }
 
 func (r *room) initEvent() error {
+	mu := &sync.Mutex{}
 	gh := newGitHub()
 	err := gh.getNotifications()
 	if err != nil {
 		return err
 	}
+	mu.Lock()
 	err = gh.processNotification(r.events)
 	if err != nil {
 		return err
 	}
+	mu.Unlock()
 	return nil
 }

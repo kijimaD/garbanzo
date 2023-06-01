@@ -1,6 +1,8 @@
 package garbanzo
 
 import (
+	"sync"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -21,6 +23,7 @@ func (wsc *wsClient) read() {
 
 // c.sendの内容をwebsocketに書き込む
 func (wsc *wsClient) write() {
+	mu := &sync.Mutex{}
 	for send := range wsc.send {
 		// doneに存在しないときだけ書き込み
 		if _, exist := wsc.done[send.NotificationID]; exist {
@@ -30,7 +33,9 @@ func (wsc *wsClient) write() {
 		if err != nil {
 			break
 		}
+		mu.Lock()
 		wsc.done[send.NotificationID] = true
+		mu.Unlock()
 	}
 	wsc.socket.Close()
 }
