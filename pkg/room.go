@@ -115,10 +115,10 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	// キャッシュ保存
 	go func() {
 		for _, v := range r.events {
-			resp, _ := http.Get(v.HTMLURL)
+			resp, _ := http.Get(v.ProxyURL)
 			defer resp.Body.Close()
 			byteArray, _ := ioutil.ReadAll(resp.Body)
-			proxyCache[v.HTMLURL] = string(byteArray)
+			proxyCache[v.ProxyURL] = string(byteArray)
 			time.Sleep(time.Second * 1)
 		}
 	}()

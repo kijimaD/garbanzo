@@ -12,12 +12,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 	"github.com/google/go-github/v48/github"
 	"github.com/kelseyhightower/envconfig"
 	"golang.org/x/oauth2"
 )
 
-var PROXY_URL string
+var PROXY_BASE string
 
 type Env struct {
 	ProxyHost   string `envconfig:"PROXY_BASE" default:"http://localhost"`
@@ -33,7 +36,7 @@ func init() {
 		fmt.Fprintf(os.Stderr, "Can't parse environment variables: %s\n", err.Error())
 		os.Exit(1)
 	}
-	PROXY_URL = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
+	PROXY_BASE = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
 }
 
 type clientI interface {
@@ -132,17 +135,24 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlURL := PROXY_URL + h.Path + "#" + h.Fragment
+	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
+
+	// 日付形式
+	updatedAt := n.UpdatedAt.Format("2006-01-02")
+
+	md := []byte(*issue.Body)
+	htmlBody := mdToHTML(md)
 
 	event := newEvent(
 		*n.ID,
 		*issue.User.Login,
 		*issue.User.AvatarURL,
 		*issue.Title,
-		*issue.Body,
-		htmlURL,
+		string(htmlBody),
+		*issue.HTMLURL,
+		proxyURL,
 		*n.Repository.FullName,
-		*n.UpdatedAt,
+		updatedAt,
 	)
 
 	return event, nil
@@ -171,18 +181,39 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlURL := PROXY_URL + h.Path + "#" + h.Fragment
+	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
+
+	// 日付形式
+	updatedAt := n.UpdatedAt.Format("2006-01-02 15:04")
+
+	md := []byte(*comment.Body)
+	htmlBody := mdToHTML(md)
 
 	event := newEvent(
 		*n.ID,
 		*comment.User.Login,
 		*comment.User.AvatarURL,
 		*n.Subject.Title,
-		*comment.Body,
-		htmlURL,
+		string(htmlBody),
+		*comment.HTMLURL,
+		proxyURL,
 		*n.Repository.FullName,
-		*n.UpdatedAt,
+		updatedAt,
 	)
 
 	return event, nil
+}
+
+func mdToHTML(md []byte) []byte {
+	// create markdown parser with extensions
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(md)
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	return markdown.Render(doc, renderer)
 }
