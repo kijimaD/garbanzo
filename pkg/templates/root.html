@@ -52,7 +52,7 @@
                          // 各要素にクリックイベントのハンドラーを設定する
                          $('#x-notification-link-'+msg.NotificationID).click(function() {
                              var iframe = document.getElementById('x-iframe');
-                             iframe.src = msg.HTMLURL;
+                             iframe.src = msg.ProxyURL;
                          });
                      });
                  }

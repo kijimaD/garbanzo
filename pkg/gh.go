@@ -20,7 +20,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var PROXY_URL string
+var PROXY_BASE string
 
 type Env struct {
 	ProxyHost   string `envconfig:"PROXY_BASE" default:"http://localhost"`
@@ -36,7 +36,7 @@ func init() {
 		fmt.Fprintf(os.Stderr, "Can't parse environment variables: %s\n", err.Error())
 		os.Exit(1)
 	}
-	PROXY_URL = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
+	PROXY_BASE = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
 }
 
 type clientI interface {
@@ -135,7 +135,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlURL := PROXY_URL + h.Path + "#" + h.Fragment
+	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
 
 	// 日付形式
 	updatedAt := n.UpdatedAt.Format("2006-01-02")
@@ -149,7 +149,8 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*issue.User.AvatarURL,
 		*issue.Title,
 		string(htmlBody),
-		htmlURL,
+		*issue.HTMLURL,
+		proxyURL,
 		*n.Repository.FullName,
 		updatedAt,
 	)
@@ -180,7 +181,7 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlURL := PROXY_URL + h.Path + "#" + h.Fragment
+	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
 
 	// 日付形式
 	updatedAt := n.UpdatedAt.Format("2006-01-02 15:04")
@@ -194,7 +195,8 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 		*comment.User.AvatarURL,
 		*n.Subject.Title,
 		string(htmlBody),
-		htmlURL,
+		*comment.HTMLURL,
+		proxyURL,
 		*n.Repository.FullName,
 		updatedAt,
 	)
