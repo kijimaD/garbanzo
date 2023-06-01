@@ -31,11 +31,13 @@
                                                         })
                                                         .attr("src", msg.AvatarURL),
                                               $("<small>").text(msg.UserName),
-                                              $("<span>").text(msg.RepoName)
-                                                         .addClass("badge bg-primary")
-                                                         .css({
-                                                             float: "right",
-                                                         }),
+                                              $("<a>").text(msg.RepoName)
+                                                      .attr("href", msg.HTMLURL)
+                                                      .attr("target", "_blank")
+                                                      .addClass("btn btn-sm btn-outline-secondary")
+                                                      .css({
+                                                          float: "right",
+                                                      }),
                                               $("<small>").text(msg.When)
                                                           .css({
                                                               float: "right",
