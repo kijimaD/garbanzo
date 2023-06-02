@@ -59,11 +59,11 @@ func (r *room) run() {
 			select {
 			case <-t.C:
 				go func() {
-					mu.Lock()
+					mu.RLock()
 					for _, v := range r.events {
 						r.forward <- v
 					}
-					mu.Unlock()
+					mu.RUnlock()
 				}()
 			}
 		}
@@ -99,7 +99,10 @@ func (r *room) run() {
 			mu.Unlock()
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
-				if _, exists := wsClient.done[forward.NotificationID]; exists {
+				mu.RLock()
+				exists := wsClient.done[forward.NotificationID]
+				mu.RUnlock()
+				if exists {
 					continue
 				}
 				select {

@@ -34,10 +34,11 @@ func (wsc *wsClient) write() {
 	for send := range wsc.send {
 		// doneに存在しないときだけ書き込み
 		mu.RLock()
-		if _, exists := wsc.done[send.NotificationID]; exists {
+		exists := wsc.done[send.NotificationID]
+		mu.RUnlock()
+		if exists {
 			continue
 		}
-		mu.RUnlock()
 		err := wsc.socket.WriteJSON(send)
 		if err != nil {
 			break
