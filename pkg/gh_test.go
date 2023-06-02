@@ -34,14 +34,14 @@ func TestGetNotificationsDup(t *testing.T) {
 func TestProcess(t *testing.T) {
 	gh := newGitHub()
 	err := gh.getNotifications()
-	events := make(Events)
+	r := newRoom()
 	if err != nil {
 		t.Error(err)
 	}
-	err = gh.processNotification(events)
+	err = gh.processNotification(r)
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, true, len(events) > 0)
-	assert.Equal(t, len(events), len(gh.notifications))
+	assert.Equal(t, true, len(r.events) > 0)
+	assert.Equal(t, len(r.events), len(gh.notifications))
 }

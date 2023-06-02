@@ -13,6 +13,8 @@ import (
 )
 
 type room struct {
+	// fetchはGitHubから取得してきたデータを保持するためのチャネル
+	fetch chan *Event
 	// forwardはクライアントに転送するためのメッセージを保持するためのチャネル
 	forward chan *Event
 	// joinはクライアントの接続要求を保持するためのチャネル
@@ -28,6 +30,7 @@ type room struct {
 
 func newRoom() *room {
 	return &room{
+		fetch:     make(chan *Event),
 		forward:   make(chan *Event),
 		join:      make(chan *wsClient),
 		leave:     make(chan *wsClient),
@@ -76,6 +79,8 @@ func (r *room) run() {
 			delete(r.wsClients, wsClient)
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
+		case fetch := <-r.fetch:
+			r.events[fetch.NotificationID] = fetch
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
 				if _, exist := wsClient.done[forward.NotificationID]; exist {
@@ -128,17 +133,14 @@ func (r *room) handleWebSocket(c echo.Context) error {
 }
 
 func (r *room) initEvent() error {
-	mu := &sync.Mutex{}
 	gh := newGitHub()
 	err := gh.getNotifications()
 	if err != nil {
 		return err
 	}
-	mu.Lock()
-	err = gh.processNotification(r.events)
+	err = gh.processNotification(r)
 	if err != nil {
 		return err
 	}
-	mu.Unlock()
 	return nil
 }
