@@ -68,6 +68,7 @@ func (r *room) run() {
 			}
 		}
 	}()
+
 	for {
 		select {
 		case wsClient := <-r.join:
@@ -85,7 +86,7 @@ func (r *room) run() {
 			mu.Unlock()
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
-				if _, exist := wsClient.done[forward.NotificationID]; exist {
+				if _, exists := wsClient.done[forward.NotificationID]; exists {
 					continue
 				}
 				select {

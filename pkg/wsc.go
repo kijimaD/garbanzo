@@ -27,7 +27,7 @@ func (wsc *wsClient) write() {
 	for send := range wsc.send {
 		// doneに存在しないときだけ書き込み
 		mu.RLock()
-		if _, exist := wsc.done[send.NotificationID]; exist {
+		if _, exists := wsc.done[send.NotificationID]; exists {
 			continue
 		}
 		mu.RUnlock()
