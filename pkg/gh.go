@@ -117,7 +117,7 @@ func (gh *GitHub) processNotification(r *room) error {
 		} else if secondLastElement == COMMENTS_EVENT_TYPE {
 			// commit comment
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 	}
 
 	return nil
