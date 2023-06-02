@@ -17,6 +17,13 @@ type wsClient struct {
 // 無限ループで待機
 func (wsc *wsClient) read() {
 	for {
+		var event *Event
+		if err := wsc.socket.ReadJSON(&event); err == nil {
+		} else {
+			// 読み込めないと終了
+			// このループを抜けるとハンドラの実行が終了する。deferによってleaveチャンネルに送られ、送信対象から外される
+			break
+		}
 	}
 	wsc.socket.Close()
 }

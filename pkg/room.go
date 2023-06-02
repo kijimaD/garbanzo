@@ -144,7 +144,7 @@ func (r *room) handleWebSocket(c echo.Context) error {
 		}
 	}()
 
-	wsc.read() // 接続は保持され、終了を指示されるまで他の処理をブロックする
+	wsc.read() // このメソッドの中の無限ループによって接続は保持され、終了を指示されるまで他の処理をブロックする
 	return nil
 }
 
