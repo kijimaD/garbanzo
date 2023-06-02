@@ -12,6 +12,7 @@ type wsClient struct {
 	// sendはメッセージが送られるチャネル。WebSocketを通じてユーザのブラウザに送られるのを待機する
 	send chan *Event
 	done map[string]bool
+	mu   *sync.RWMutex
 }
 
 // 無限ループで待機
@@ -30,12 +31,11 @@ func (wsc *wsClient) read() {
 
 // c.sendの内容をwebsocketに書き込む
 func (wsc *wsClient) write() {
-	mu := &sync.RWMutex{}
 	for send := range wsc.send {
 		// doneに存在しないときだけ書き込み
-		mu.RLock()
+		wsc.mu.RLock()
 		exists := wsc.done[send.NotificationID]
-		mu.RUnlock()
+		wsc.mu.RUnlock()
 		if exists {
 			continue
 		}
@@ -43,9 +43,9 @@ func (wsc *wsClient) write() {
 		if err != nil {
 			break
 		}
-		mu.Lock()
+		wsc.mu.Lock()
 		wsc.done[send.NotificationID] = true
-		mu.Unlock()
+		wsc.mu.Unlock()
 	}
 	wsc.socket.Close()
 }

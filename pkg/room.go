@@ -26,6 +26,7 @@ type room struct {
 	// tracerは操作のログを受け取る
 	tracer trace.Tracer
 	events Events
+	mu     *sync.RWMutex
 }
 
 func newRoom() *room {
@@ -37,6 +38,7 @@ func newRoom() *room {
 		wsClients: make(map[*wsClient]bool),
 		tracer:    trace.Off(), // デフォルトではログ出力はされない
 		events:    make(Events),
+		mu:        &sync.RWMutex{},
 	}
 }
 
@@ -94,14 +96,14 @@ func (r *room) run() {
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
 		case fetch := <-r.fetch:
-			mu.Lock()
+			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch
-			mu.Unlock()
+			r.mu.Unlock()
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
-				mu.RLock()
+				r.mu.RLock()
 				exists := wsClient.done[forward.NotificationID]
-				mu.RUnlock()
+				r.mu.RUnlock()
 				if exists {
 					continue
 				}
@@ -130,6 +132,7 @@ func (r *room) handleWebSocket(c echo.Context) error {
 		socket: socket,
 		send:   make(chan *Event, messageBufferSize),
 		done:   make(map[string]bool),
+		mu:     &sync.RWMutex{},
 	}
 
 	r.join <- wsc
