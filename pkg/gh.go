@@ -94,21 +94,28 @@ func (gh *GitHub) processNotification(r *room) error {
 		elements := strings.Split(u.Path, "/")
 		// 最後から2番目の要素を取得する
 		secondLastElement := elements[len(elements)-2]
-		// comment: /issues/comments/xxxxxxxx
+		thirdLastElement := elements[len(elements)-3]
 		// issue open: /issue/xxxxx
+		// comment: /issues/comments/xxxxxxxx
+		// commit comment: /comments/xxxx
 
 		if secondLastElement == ISSUES_EVENT_TYPE {
+			// issue open
 			event, err := gh.getIssueEvent(n)
 			if err != nil {
 				return err
 			}
 			r.fetch <- event
-		} else if secondLastElement == COMMENTS_EVENT_TYPE {
+		} else if thirdLastElement == ISSUES_EVENT_TYPE &&
+			// comment
+			secondLastElement == COMMENTS_EVENT_TYPE {
 			event, err := gh.getCommentEvent(n)
 			if err != nil {
 				return err
 			}
 			r.fetch <- event
+		} else if secondLastElement == COMMENTS_EVENT_TYPE {
+			// commit comment
 		}
 		time.Sleep(500 * time.Millisecond)
 	}

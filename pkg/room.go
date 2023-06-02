@@ -80,7 +80,9 @@ func (r *room) run() {
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
 		case fetch := <-r.fetch:
+			mu.Lock()
 			r.events[fetch.NotificationID] = fetch
+			mu.Unlock()
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
 				if _, exist := wsClient.done[forward.NotificationID]; exist {
