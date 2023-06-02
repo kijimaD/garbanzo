@@ -20,6 +20,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const timezone = "Asia/Tokyo"
+const timeformat = "2006-01-02 15:04"
+
 var PROXY_BASE string
 
 type Env struct {
@@ -83,7 +86,10 @@ const COMMENTS_EVENT_TYPE = "comments"
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification(r *room) error {
-	for _, n := range gh.notifications {
+	for id, n := range gh.notifications {
+		if _, exists := r.events[id]; exists {
+			continue
+		}
 		if n.Subject.LatestCommentURL == nil {
 			continue
 		}
@@ -145,7 +151,9 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
 
 	// 日付形式
-	updatedAt := n.UpdatedAt.Format("2006-01-02")
+	jst := time.FixedZone(timezone, 9*60*60)
+	nowJST := n.UpdatedAt.In(jst)
+	updatedAt := nowJST.Format(timeformat)
 
 	md := []byte(*issue.Body)
 	htmlBody := mdToHTML(md)
@@ -191,7 +199,9 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
 
 	// 日付形式
-	updatedAt := n.UpdatedAt.Format("2006-01-02 15:04")
+	jst := time.FixedZone(timezone, 9*60*60)
+	nowJST := n.UpdatedAt.In(jst)
+	updatedAt := nowJST.Format(timeformat)
 
 	md := []byte(*comment.Body)
 	htmlBody := mdToHTML(md)

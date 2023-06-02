@@ -1,6 +1,7 @@
 package garbanzo
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -26,6 +27,7 @@ type room struct {
 	// tracerは操作のログを受け取る
 	tracer trace.Tracer
 	events Events
+	mu     *sync.RWMutex
 }
 
 func newRoom() *room {
@@ -37,6 +39,7 @@ func newRoom() *room {
 		wsClients: make(map[*wsClient]bool),
 		tracer:    trace.Off(), // デフォルトではログ出力はされない
 		events:    make(Events),
+		mu:        &sync.RWMutex{},
 	}
 }
 
@@ -47,27 +50,38 @@ const (
 
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
-const syncSecond = 2
+const syncSecond = 4
 
 func (r *room) run() {
-	mu := &sync.RWMutex{}
-	// r.eventsをクライアントと同期する
 	go func() {
-		t := time.NewTicker(syncSecond * time.Second)
-		defer t.Stop()
+		t1 := time.NewTicker(syncSecond * time.Second)
+		defer t1.Stop()
+		t2 := time.NewTicker(30 * time.Second)
+		defer t2.Stop()
 		for {
 			select {
-			case <-t.C:
+			case <-t1.C:
 				go func() {
-					mu.Lock()
+					// r.eventsをクライアントと同期する
+					r.mu.RLock()
 					for _, v := range r.events {
 						r.forward <- v
 					}
-					mu.Unlock()
+					r.mu.RUnlock()
+				}()
+			case <-t2.C:
+				go func() {
+					r.fetchEvent()
+
+					err := r.fetchCache()
+					if err != nil {
+						log.Println(err)
+					}
 				}()
 			}
 		}
 	}()
+
 	for {
 		select {
 		case wsClient := <-r.join:
@@ -80,18 +94,21 @@ func (r *room) run() {
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
 		case fetch := <-r.fetch:
-			mu.Lock()
+			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch
-			mu.Unlock()
+			r.mu.Unlock()
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
-				if _, exist := wsClient.done[forward.NotificationID]; exist {
+				r.mu.RLock()
+				exists := wsClient.done[forward.NotificationID]
+				r.mu.RUnlock()
+				if exists {
 					continue
 				}
 				select {
 				case wsClient.send <- forward:
 					// roomごとのEventsをwsClientごとのEventsと同期する
-					r.tracer.Trace("send message to client: " + forward.NotificationID)
+					r.tracer.Trace("send message to client")
 				default:
 					// 送信に失敗
 					delete(r.wsClients, wsClient)
@@ -113,28 +130,17 @@ func (r *room) handleWebSocket(c echo.Context) error {
 		socket: socket,
 		send:   make(chan *Event, messageBufferSize),
 		done:   make(map[string]bool),
+		mu:     &sync.RWMutex{},
 	}
 
 	r.join <- wsc
 	defer func() { r.leave <- wsc }()
 	go wsc.write() // c.sendの内容をwebsocketに書き込む
-
-	// キャッシュ保存
-	go func() {
-		for _, v := range r.events {
-			resp, _ := http.Get(v.ProxyURL)
-			defer resp.Body.Close()
-			byteArray, _ := ioutil.ReadAll(resp.Body)
-			proxyCache[v.ProxyURL] = string(byteArray)
-			time.Sleep(time.Second * 1)
-		}
-	}()
-
-	wsc.read() // 接続は保持され、終了を指示されるまで他の処理をブロックする
+	wsc.read()     // このメソッドの中の無限ループによって接続は保持され、終了を指示されるまで他の処理をブロックする
 	return nil
 }
 
-func (r *room) initEvent() error {
+func (r *room) fetchEvent() error {
 	gh := newGitHub()
 	err := gh.getNotifications()
 	if err != nil {
@@ -143,6 +149,23 @@ func (r *room) initEvent() error {
 	err = gh.processNotification(r)
 	if err != nil {
 		return err
+	}
+	fmt.Print("e")
+	return nil
+}
+
+// HTMLページのキャッシュを取得する
+func (r *room) fetchCache() error {
+	for _, v := range r.events {
+		if _, exists := proxyCache[v.ProxyURL]; exists {
+			continue
+		}
+		resp, _ := http.Get(v.ProxyURL)
+		defer resp.Body.Close()
+		byteArray, _ := ioutil.ReadAll(resp.Body)
+		proxyCache[v.ProxyURL] = string(byteArray)
+		time.Sleep(time.Second * 1)
+		fmt.Print("c")
 	}
 	return nil
 }
