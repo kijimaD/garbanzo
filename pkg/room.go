@@ -1,6 +1,7 @@
 package garbanzo
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -49,36 +50,33 @@ const (
 
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
-const syncSecond = 2
+const syncSecond = 4
 
 func (r *room) run() {
-	mu := &sync.RWMutex{}
-	// r.eventsをクライアントと同期する
 	go func() {
-		t := time.NewTicker(syncSecond * time.Second)
-		defer t.Stop()
+		t1 := time.NewTicker(syncSecond * time.Second)
+		defer t1.Stop()
+		t2 := time.NewTicker(30 * time.Second)
+		defer t2.Stop()
 		for {
 			select {
-			case <-t.C:
+			case <-t1.C:
 				go func() {
-					mu.RLock()
+					// r.eventsをクライアントと同期する
+					r.mu.RLock()
 					for _, v := range r.events {
 						r.forward <- v
 					}
-					mu.RUnlock()
+					r.mu.RUnlock()
 				}()
-			}
-		}
-	}()
-
-	go func() {
-		t := time.NewTicker(30 * time.Second)
-		defer t.Stop()
-		for {
-			select {
-			case <-t.C:
+			case <-t2.C:
 				go func() {
 					r.fetchEvent()
+
+					err := r.fetchCache()
+					if err != nil {
+						log.Println(err)
+					}
 				}()
 			}
 		}
@@ -110,7 +108,7 @@ func (r *room) run() {
 				select {
 				case wsClient.send <- forward:
 					// roomごとのEventsをwsClientごとのEventsと同期する
-					r.tracer.Trace("send message to client: " + forward.NotificationID)
+					r.tracer.Trace("send message to client")
 				default:
 					// 送信に失敗
 					delete(r.wsClients, wsClient)
@@ -138,16 +136,7 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	r.join <- wsc
 	defer func() { r.leave <- wsc }()
 	go wsc.write() // c.sendの内容をwebsocketに書き込む
-
-	// キャッシュ保存
-	go func() {
-		err = r.fetchCache()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
-	wsc.read() // このメソッドの中の無限ループによって接続は保持され、終了を指示されるまで他の処理をブロックする
+	wsc.read()     // このメソッドの中の無限ループによって接続は保持され、終了を指示されるまで他の処理をブロックする
 	return nil
 }
 
@@ -161,17 +150,22 @@ func (r *room) fetchEvent() error {
 	if err != nil {
 		return err
 	}
+	fmt.Print("e")
 	return nil
 }
 
 // HTMLページのキャッシュを取得する
 func (r *room) fetchCache() error {
 	for _, v := range r.events {
+		if _, exists := proxyCache[v.ProxyURL]; exists {
+			continue
+		}
 		resp, _ := http.Get(v.ProxyURL)
 		defer resp.Body.Close()
 		byteArray, _ := ioutil.ReadAll(resp.Body)
 		proxyCache[v.ProxyURL] = string(byteArray)
 		time.Sleep(time.Second * 1)
+		fmt.Print("c")
 	}
 	return nil
 }

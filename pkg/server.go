@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	trace "github.com/kijimaD/garbanzo/trace"
 	"github.com/labstack/echo/v4"
@@ -36,7 +37,8 @@ func NewRouter(templDir string, publicDir string) *echo.Echo {
 
 	room := newRoom()
 	room.tracer = trace.New(os.Stdout)
-	go room.fetchEvent()
+	go room.fetchEvent()                                            // 初回実行
+	go func() { time.Sleep(10 * time.Second); room.fetchCache() }() // 初回実行
 	go room.run()
 
 	e := echo.New()
