@@ -50,7 +50,7 @@ var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBuffer
 const syncSecond = 2
 
 func (r *room) run() {
-	mu := &sync.Mutex{}
+	mu := &sync.RWMutex{}
 	// r.eventsをクライアントと同期する
 	go func() {
 		t := time.NewTicker(syncSecond * time.Second)

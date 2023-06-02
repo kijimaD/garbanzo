@@ -23,14 +23,14 @@ func (wsc *wsClient) read() {
 
 // c.sendの内容をwebsocketに書き込む
 func (wsc *wsClient) write() {
-	mu := &sync.Mutex{}
+	mu := &sync.RWMutex{}
 	for send := range wsc.send {
 		// doneに存在しないときだけ書き込み
-		mu.Lock()
+		mu.RLock()
 		if _, exist := wsc.done[send.NotificationID]; exist {
 			continue
 		}
-		mu.Unlock()
+		mu.RUnlock()
 		err := wsc.socket.WriteJSON(send)
 		if err != nil {
 			break
