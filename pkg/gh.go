@@ -83,7 +83,10 @@ const COMMENTS_EVENT_TYPE = "comments"
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification(r *room) error {
-	for _, n := range gh.notifications {
+	for id, n := range gh.notifications {
+		if _, exists := r.events[id]; exists {
+			continue
+		}
 		if n.Subject.LatestCommentURL == nil {
 			continue
 		}

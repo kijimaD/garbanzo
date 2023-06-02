@@ -69,6 +69,19 @@ func (r *room) run() {
 		}
 	}()
 
+	go func() {
+		t := time.NewTicker(30 * time.Second)
+		defer t.Stop()
+		for {
+			select {
+			case <-t.C:
+				go func() {
+					r.fetchEvent()
+				}()
+			}
+		}
+	}()
+
 	for {
 		select {
 		case wsClient := <-r.join:
@@ -135,7 +148,7 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	return nil
 }
 
-func (r *room) initEvent() error {
+func (r *room) fetchEvent() error {
 	gh := newGitHub()
 	err := gh.getNotifications()
 	if err != nil {

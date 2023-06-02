@@ -36,7 +36,7 @@ func NewRouter(templDir string, publicDir string) *echo.Echo {
 
 	room := newRoom()
 	room.tracer = trace.New(os.Stdout)
-	go room.initEvent()
+	go room.fetchEvent()
 	go room.run()
 
 	e := echo.New()
