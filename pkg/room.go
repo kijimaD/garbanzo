@@ -138,12 +138,9 @@ func (r *room) handleWebSocket(c echo.Context) error {
 
 	// キャッシュ保存
 	go func() {
-		for _, v := range r.events {
-			resp, _ := http.Get(v.ProxyURL)
-			defer resp.Body.Close()
-			byteArray, _ := ioutil.ReadAll(resp.Body)
-			proxyCache[v.ProxyURL] = string(byteArray)
-			time.Sleep(time.Second * 1)
+		err = r.fetchCache()
+		if err != nil {
+			log.Println(err)
 		}
 	}()
 
@@ -160,6 +157,18 @@ func (r *room) fetchEvent() error {
 	err = gh.processNotification(r)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+// HTMLページのキャッシュを取得する
+func (r *room) fetchCache() error {
+	for _, v := range r.events {
+		resp, _ := http.Get(v.ProxyURL)
+		defer resp.Body.Close()
+		byteArray, _ := ioutil.ReadAll(resp.Body)
+		proxyCache[v.ProxyURL] = string(byteArray)
+		time.Sleep(time.Second * 1)
 	}
 	return nil
 }
