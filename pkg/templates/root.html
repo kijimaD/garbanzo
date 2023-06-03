@@ -64,7 +64,10 @@
                          });
                      });
 
-                     Push.create(msg.Title);
+                     // プッシュ通知
+                     if (msg.IsNotifyBrowser) {
+                         Push.create(msg.Title);
+                     }
                  }
              }
          });

@@ -2,6 +2,7 @@ package garbanzo
 
 import (
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -39,6 +40,14 @@ func (wsc *wsClient) write() {
 		if exists {
 			continue
 		}
+
+		// 直近のイベントだけブラウザ通知する
+		now := time.Now()
+		minutesAgo := send.UpdatedAt.Add(-60 * time.Minute)
+		if now.Before(minutesAgo) {
+			send.IsNotifyBrowser = true
+		}
+
 		err := wsc.socket.WriteJSON(send)
 		if err != nil {
 			break
