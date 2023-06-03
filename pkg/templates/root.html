@@ -36,22 +36,22 @@
                                               $("<a>").text(msg.RepoName)
                                                       .attr("href", msg.HTMLURL)
                                                       .attr("target", "_blank")
-                                                      .addClass("link-secondary")
+                                                      .addClass("text-muted small")
                                                       .css({
                                                           float: "right",
                                                       }).append(
                                                           $("<i>").addClass("bi bi-arrow-up-right")
                                                       ),
-                                              $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-secondary text-secondary"),
-                                              $("<h4>").text(msg.Title)
-                                                       .addClass("fw-bold text-break"),
-                                              $("<p>").html(msg.Body)
-                                                      .addClass("nav-item mb-2 d-inline text-break"),
                                               $("<small>").text(msg.When)
-                                                          .addClass("text-secondary")
+                                                          .addClass("text-muted")
                                                           .css({
                                                               float: "right",
                                                           }),
+                                              $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary"),
+                                              $("<h6>").html(msg.Title)
+                                                      .addClass("h6 text-break"),
+                                              // $("<p>").html(msg.Body)
+                                              //         .addClass("nav-item mb-2 d-inline text-break"),
                                           )
                                       )
                      );
