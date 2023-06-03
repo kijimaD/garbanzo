@@ -43,9 +43,9 @@
                                                       ),
                                               $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-secondary text-secondary"),
                                               $("<h4>").text(msg.Title)
-                                                       .addClass("fw-bold"),
+                                                       .addClass("fw-bold text-break"),
                                               $("<p>").html(msg.Body)
-                                                      .addClass("nav-item mb-2 d-inline"),
+                                                      .addClass("nav-item mb-2 d-inline text-break"),
                                               $("<small>").text(msg.When)
                                                           .addClass("text-secondary")
                                                           .css({
@@ -70,7 +70,7 @@
     <body class="h-100">
         <div class="d-flex flex-row">
             <!-- サイドメニュー -->
-            <nav class="bg-white" style="width: 800px; overflow-y: scroll; height: 100vh;">
+            <nav class="bg-white" style="min-width: 524px; overflow-y: scroll; height: 100vh;">
                 <header class="bg-light px-3 py-0">
                     <!-- ヘッダーの内容 -->
                     <h1 class="fs-2 text-primary fw-bold py-0">
