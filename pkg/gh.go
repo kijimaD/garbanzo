@@ -114,8 +114,7 @@ func (gh *GitHub) processNotification(r *room) error {
 
 		var originURL string
 		if *n.Subject.Type == "PullRequest" && n.Subject.LatestCommentURL == nil {
-			// PRの場合はLatestCommentURLがない。なのでコメントやディスカッションを特定できない
-			// TODO: notification URLをたどればいけそうな気はする
+			// PRオープンやクローズ、レビュー送信の場合はLatestCommentURLがない
 			originURL = *n.Subject.URL
 		} else {
 			originURL = *n.Subject.LatestCommentURL
@@ -128,9 +127,9 @@ func (gh *GitHub) processNotification(r *room) error {
 		elements := strings.Split(u.Path, "/")
 		secondLastElement := elements[len(elements)-2]
 		thirdLastElement := elements[len(elements)-3]
-		// pull open:         /pulls/xxxxx
-		// issue open:        /issue/xxxxx
-		// issue comment:     /issues/comments/xxxxx
+		// pull:              /pulls/xxxxx
+		// issue:             /issue/xxxxx
+		// comment(Issue+PR): /issues/comments/xxxxx
 		// commit comment:    /comments/xxxxx
 		// release            /releases/xxxxx
 
@@ -287,7 +286,7 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 		proxyURL,
 		*n.Repository.FullName,
 		genTimeWithTZ(n.UpdatedAt),
-		"Issue comment",
+		"Comment",
 		*n.UpdatedAt,
 	)
 
