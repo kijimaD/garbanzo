@@ -30,6 +30,9 @@ func (wsc *wsClient) read() {
 	wsc.socket.Close()
 }
 
+// 直近〜分だけブラウザ通知する
+const notifyMinutesAgo = 60
+
 // c.sendの内容をwebsocketに書き込む
 func (wsc *wsClient) write() {
 	for send := range wsc.send {
@@ -43,8 +46,10 @@ func (wsc *wsClient) write() {
 
 		// 直近のイベントだけブラウザ通知する
 		now := time.Now()
-		minutesAgo := send.UpdatedAt.Add(-60 * time.Minute)
-		if now.Before(minutesAgo) {
+		minutesAgo := now.Add(-notifyMinutesAgo * time.Minute)
+		// 「更新時間」が、「更新時刻よりN分前」より未来にあるか?
+		// (過去) ---> 今-N分前 ---> |-> 通知有効期間 <-| ---> 今 ---> (未来)
+		if send.UpdatedAt.After(minutesAgo) {
 			send.IsNotifyBrowser = true
 		}
 
