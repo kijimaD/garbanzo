@@ -99,9 +99,9 @@ func (r *room) run() {
 			r.mu.Unlock()
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
-				r.mu.RLock()
+				wsClient.mu.RLock()
 				exists := wsClient.done[forward.NotificationID]
-				r.mu.RUnlock()
+				wsClient.mu.RUnlock()
 				if exists {
 					continue
 				}
