@@ -157,13 +157,20 @@ func (r *room) fetchEvent() error {
 // HTMLページのキャッシュを取得する
 func (r *room) fetchCache() error {
 	for _, v := range r.events {
-		if _, exists := proxyCache[v.ProxyURL]; exists {
+		proxyMutex.RLock()
+		_, exists := proxyCache[v.ProxyURL]
+		proxyMutex.RUnlock()
+		if exists {
 			continue
 		}
+
 		resp, _ := http.Get(v.ProxyURL)
 		defer resp.Body.Close()
 		byteArray, _ := ioutil.ReadAll(resp.Body)
+		proxyMutex.Lock()
 		proxyCache[v.ProxyURL] = string(byteArray)
+		proxyMutex.Unlock()
+
 		time.Sleep(time.Second * 1)
 		fmt.Print("c")
 	}
