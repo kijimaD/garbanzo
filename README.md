@@ -1,5 +1,7 @@
 # garbanzo
 
+garbanzo is fast GitHub notification viewer!
+
 [screencast-localhost_8080-2023.06.03-00_12_54.webm](https://github.com/kijimaD/garbanzo/assets/11595790/06fd7c99-bd99-48eb-873b-34a6d6ab511b)
 
 ## how to use
