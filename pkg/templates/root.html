@@ -2,6 +2,7 @@
     <head>
         <title>Garbanzo</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script>
          $(function() {
@@ -37,7 +38,10 @@
                                                       .addClass("link-secondary")
                                                       .css({
                                                           float: "right",
-                                                      }),
+                                                      }).append(
+                                                          $("<i>").addClass("bi bi-arrow-up-right")
+                                                      ),
+                                              $("<span>").text(msg.Kind)                                                                                        .addClass("badge badge rounded-pill bg-light text-dark"),
                                               $("<h4>").text(msg.Title)
                                                        .addClass("fw-bold"),
                                               $("<p>").html(msg.Body)
@@ -69,7 +73,9 @@
             <nav class="bg-white" style="width: 800px; overflow-y: scroll; height: 100vh;">
                 <header class="bg-light px-3 py-0">
                     <!-- ヘッダーの内容 -->
-                    <h1 class="fs-2 text-primary fw-bold py-0">Garbanzo</h1>
+                    <h1 class="fs-2 text-primary fw-bold py-0">
+                        Garbanzo
+                    </h1>
                     <ul class="navbar-nav d-flex flex-row">
                         <!-- <li class="nav-item mx-3 text-muted active"><a href="#" class="nav-link text-secondary">Option</a></li> -->
                     </ul>

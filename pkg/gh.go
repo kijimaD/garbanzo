@@ -168,6 +168,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		proxyURL,
 		*n.Repository.FullName,
 		updatedAt,
+		"open",
 	)
 
 	return event, nil
@@ -216,6 +217,7 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 		proxyURL,
 		*n.Repository.FullName,
 		updatedAt,
+		"comment",
 	)
 
 	return event, nil

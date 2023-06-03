@@ -12,11 +12,12 @@ type Event struct {
 	ProxyURL       string // iframe遷移に使う、ホストがリバースプロキシ先で置き換えられたURL
 	RepoName       string // フルリポジトリ名 golang/go
 	When           string // 更新時間(updated_at)
+	Kind           string // 種別
 }
 
 type Events map[string]*Event // keyにNotificationIDを使う
 
-func newEvent(notificationID string, userName string, avatarURL string, title string, body string, HTMLURL string, ProxyURL string, repoName string, when string) *Event {
+func newEvent(notificationID string, userName string, avatarURL string, title string, body string, HTMLURL string, ProxyURL string, repoName string, when string, kind string) *Event {
 	return &Event{
 		NotificationID: notificationID,
 		UserName:       userName,
@@ -27,5 +28,6 @@ func newEvent(notificationID string, userName string, avatarURL string, title st
 		ProxyURL:       ProxyURL,
 		RepoName:       repoName,
 		When:           when,
+		Kind:           kind,
 	}
 }
