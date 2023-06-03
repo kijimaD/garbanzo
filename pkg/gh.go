@@ -193,12 +193,13 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 	}
 
 	htmlBody := mdToHTML([]byte(*pull.Body))
+	htmlTitle := mdToHTML([]byte(*pull.Title))
 
 	event := newEvent(
 		*n.ID,
 		*pull.User.Login,
 		*pull.User.AvatarURL,
-		*pull.Title,
+		string(htmlTitle),
 		string(htmlBody),
 		*pull.HTMLURL,
 		proxyURL,
@@ -232,12 +233,13 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	}
 
 	htmlBody := mdToHTML([]byte(*issue.Body))
+	htmlTitle := mdToHTML([]byte(*issue.Title))
 
 	event := newEvent(
 		*n.ID,
 		*issue.User.Login,
 		*issue.User.AvatarURL,
-		*issue.Title,
+		string(htmlTitle),
 		string(htmlBody),
 		*issue.HTMLURL,
 		proxyURL,
@@ -275,12 +277,13 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 	}
 
 	htmlBody := mdToHTML([]byte(*comment.Body))
+	htmlTitle := mdToHTML([]byte(*n.Subject.Title))
 
 	event := newEvent(
 		*n.ID,
 		*comment.User.Login,
 		*comment.User.AvatarURL,
-		*n.Subject.Title,
+		string(htmlTitle),
 		string(htmlBody),
 		*comment.HTMLURL,
 		proxyURL,
@@ -318,12 +321,13 @@ func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
 	}
 
 	htmlBody := mdToHTML([]byte(*release.Body))
+	htmlTitle := mdToHTML([]byte(*n.Subject.Title))
 
 	event := newEvent(
 		*n.ID,
 		*n.Repository.Owner.Login,     // リリースにはユーザがないのでとりあえずownerを設定する
 		*n.Repository.Owner.AvatarURL, // リリースにはユーザがないのでとりあえずownerを設定する
-		*n.Subject.Title,
+		string(htmlTitle),
 		string(htmlBody),
 		*release.HTMLURL,
 		proxyURL,
