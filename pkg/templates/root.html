@@ -48,8 +48,8 @@
                                                               float: "right",
                                                           }),
                                               $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary"),
-                                              $("<h6>").html(msg.Title)
-                                                      .addClass("h6 text-break"),
+                                              $("<h6>").html(msg.TitleHTML)
+                                                       .addClass("h6 text-break"),
                                               // $("<p>").html(msg.Body)
                                               //         .addClass("nav-item mb-2 d-inline text-break"),
                                           )
@@ -66,7 +66,9 @@
 
                      // プッシュ通知
                      if (msg.IsNotifyBrowser) {
-                         Push.create(msg.Title);
+                         Push.create(msg.Title,{
+                             icon: msg.AvatarURL,
+                         });
                      }
                  }
              }

@@ -199,6 +199,7 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 		*n.ID,
 		*pull.User.Login,
 		*pull.User.AvatarURL,
+		*pull.Title,
 		string(htmlTitle),
 		string(htmlBody),
 		*pull.HTMLURL,
@@ -239,6 +240,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*n.ID,
 		*issue.User.Login,
 		*issue.User.AvatarURL,
+		*issue.Title,
 		string(htmlTitle),
 		string(htmlBody),
 		*issue.HTMLURL,
@@ -283,6 +285,7 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 		*n.ID,
 		*comment.User.Login,
 		*comment.User.AvatarURL,
+		*n.Subject.Title,
 		string(htmlTitle),
 		string(htmlBody),
 		*comment.HTMLURL,
@@ -327,6 +330,7 @@ func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
 		*n.ID,
 		*n.Repository.Owner.Login,     // リリースにはユーザがないのでとりあえずownerを設定する
 		*n.Repository.Owner.AvatarURL, // リリースにはユーザがないのでとりあえずownerを設定する
+		*n.Subject.Title,
 		string(htmlTitle),
 		string(htmlBody),
 		*release.HTMLURL,
