@@ -174,6 +174,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*n.Repository.FullName,
 		genTimeWithTZ(n.UpdatedAt),
 		"open",
+		*n.UpdatedAt,
 	)
 
 	return event, nil
@@ -216,6 +217,7 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 		*n.Repository.FullName,
 		genTimeWithTZ(n.UpdatedAt),
 		"comment",
+		*n.UpdatedAt,
 	)
 
 	return event, nil

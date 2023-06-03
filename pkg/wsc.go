@@ -2,6 +2,7 @@ package garbanzo
 
 import (
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -15,7 +16,7 @@ type wsClient struct {
 	mu   *sync.RWMutex
 }
 
-// 無限ループで待機
+// 無限ループでwebsocketを受信し続ける
 func (wsc *wsClient) read() {
 	for {
 		var event *Event
@@ -29,6 +30,9 @@ func (wsc *wsClient) read() {
 	wsc.socket.Close()
 }
 
+// 直近〜分だけブラウザ通知する
+const notifyMinutesAgo = 60
+
 // c.sendの内容をwebsocketに書き込む
 func (wsc *wsClient) write() {
 	for send := range wsc.send {
@@ -39,6 +43,16 @@ func (wsc *wsClient) write() {
 		if exists {
 			continue
 		}
+
+		// 直近のイベントだけブラウザ通知する
+		now := time.Now()
+		minutesAgo := now.Add(-notifyMinutesAgo * time.Minute)
+		// 「更新時間」が、「更新時刻よりN分前」より未来にあるか?
+		// (過去) ---> 今-N分前 ---> |-> 通知有効期間 <-| ---> 今 ---> (未来)
+		if send.UpdatedAt.After(minutesAgo) {
+			send.IsNotifyBrowser = true
+		}
+
 		err := wsc.socket.WriteJSON(send)
 		if err != nil {
 			break
