@@ -3,6 +3,7 @@ package garbanzo
 import (
 	"io/ioutil"
 	"net/http"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 )
@@ -14,18 +15,18 @@ func NewProxyRouter() *echo.Echo {
 	return e
 }
 
-var proxyCache map[string]string
+var proxyCache = make(map[string]string)
+var proxyMutex = &sync.RWMutex{}
 
 func ghHandler(c echo.Context) error {
-	if proxyCache == nil {
-		proxyCache = make(map[string]string)
-	}
-
 	path := c.Request().URL.String()
 	url := "https://github.com" + path
 
 	// load cache
-	if val, ok := proxyCache[url]; ok {
+	proxyMutex.RLock()
+	val, ok := proxyCache[url]
+	proxyMutex.RUnlock()
+	if ok {
 		return c.HTML(http.StatusOK, val)
 	}
 	resp, _ := http.Get(url)
@@ -33,6 +34,8 @@ func ghHandler(c echo.Context) error {
 
 	byteArray, _ := ioutil.ReadAll(resp.Body)
 	// save cache
+	proxyMutex.Lock()
 	proxyCache[url] = string(byteArray)
+	proxyMutex.Unlock()
 	return c.HTML(http.StatusOK, string(byteArray))
 }
