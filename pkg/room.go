@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 	"sync"
 	"time"
 
@@ -63,11 +64,23 @@ func (r *room) run() {
 			case <-t1.C:
 				go func() {
 					// r.eventsをクライアントと同期する
+					// 一旦ソートしたスライスを作成して送信する
+					keys := make([]string, 0, len(r.events))
 					r.mu.RLock()
-					for _, v := range r.events {
-						r.forward <- v
+					for key := range r.events {
+						keys = append(keys, key)
+					}
+					sort.SliceStable(keys, func(i, j int) bool {
+						return r.events[keys[i]].When < r.events[keys[j]].When
+					})
+					sorted := make([]*Event, 0, len(r.events))
+					for _, k := range keys {
+						sorted = append(sorted, r.events[k])
 					}
 					r.mu.RUnlock()
+					for _, v := range sorted {
+						r.forward <- v
+					}
 				}()
 			case <-t2.C:
 				go func() {
