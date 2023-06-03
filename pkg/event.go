@@ -8,7 +8,8 @@ type Event struct {
 	NotificationID  string    // 通知ID
 	UserName        string    // GitHubユーザの名前
 	AvatarURL       string    // GitHubユーザのアイコン画像
-	Title           string    // 通知のタイトル
+	Title           string    // 通知のタイトル(プレーンテキスト)
+	TitleHTML       string    // 通知のタイトル(HTML)
 	Body            string    // 通知の本文
 	HTMLURL         string    // 通常の、ホストがgithub.comのURL
 	ProxyURL        string    // iframe遷移に使う、ホストがリバースプロキシ先で置き換えられたURL
@@ -21,12 +22,13 @@ type Event struct {
 
 type Events map[string]*Event // keyにNotificationIDを使う
 
-func newEvent(notificationID string, userName string, avatarURL string, title string, body string, HTMLURL string, ProxyURL string, repoName string, when string, kind string, updatedAt time.Time) *Event {
+func newEvent(notificationID string, userName string, avatarURL string, title string, titleHTML string, body string, HTMLURL string, ProxyURL string, repoName string, when string, kind string, updatedAt time.Time) *Event {
 	return &Event{
 		NotificationID:  notificationID,
 		UserName:        userName,
 		AvatarURL:       avatarURL,
 		Title:           title,
+		TitleHTML:       titleHTML,
 		Body:            body,
 		HTMLURL:         HTMLURL,
 		ProxyURL:        ProxyURL,

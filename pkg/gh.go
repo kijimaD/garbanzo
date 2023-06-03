@@ -5,6 +5,7 @@ package garbanzo
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"path"
@@ -81,6 +82,8 @@ func (gh *GitHub) getNotifications() error {
 
 const ISSUES_EVENT_TYPE = "issues"
 const COMMENTS_EVENT_TYPE = "comments"
+const PULLREQUESTS_EVENT_TYPE = "pulls"
+const RELEASES_EVENT_TYPE = "releases"
 
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
@@ -103,21 +106,40 @@ func (gh *GitHub) processNotification(r *room) error {
 		if _, exists := r.events[*n.ID]; exists {
 			continue
 		}
-		if n.Subject.LatestCommentURL == nil {
+		if *n.Subject.Type == "Discussion" {
+			// discussionはなぜかURLが空になっていて、辿ることができない
+			// https://github.com/orgs/community/discussions/15252
 			continue
 		}
-		u, err := url.Parse(*n.Subject.LatestCommentURL)
+
+		var originURL string
+		if *n.Subject.Type == "PullRequest" && n.Subject.LatestCommentURL == nil {
+			// PRオープンやクローズ、レビュー送信の場合はLatestCommentURLがない
+			originURL = *n.Subject.URL
+		} else {
+			originURL = *n.Subject.LatestCommentURL
+		}
+
+		u, err := url.Parse(originURL)
 		if err != nil {
 			return err
 		}
 		elements := strings.Split(u.Path, "/")
 		secondLastElement := elements[len(elements)-2]
 		thirdLastElement := elements[len(elements)-3]
-		// issue open:        /issue/xxxxx
-		// comment: /issues/comments/xxxxx
-		// commit comment: /comments/xxxxx
+		// pull:              /pulls/xxxxx
+		// issue:             /issue/xxxxx
+		// comment(Issue+PR): /issues/comments/xxxxx
+		// commit comment:    /comments/xxxxx
+		// release            /releases/xxxxx
 
-		if secondLastElement == ISSUES_EVENT_TYPE {
+		if secondLastElement == PULLREQUESTS_EVENT_TYPE {
+			event, err := gh.getPullRequestEvent(n)
+			if err != nil {
+				return err
+			}
+			r.fetch <- event
+		} else if secondLastElement == ISSUES_EVENT_TYPE {
 			// issue open
 			event, err := gh.getIssueEvent(n)
 			if err != nil {
@@ -125,20 +147,70 @@ func (gh *GitHub) processNotification(r *room) error {
 			}
 			r.fetch <- event
 		} else if thirdLastElement == ISSUES_EVENT_TYPE &&
-			// comment
 			secondLastElement == COMMENTS_EVENT_TYPE {
-			event, err := gh.getCommentEvent(n)
+			// comment
+			event, err := gh.getIssueCommentEvent(n)
 			if err != nil {
 				return err
 			}
 			r.fetch <- event
 		} else if secondLastElement == COMMENTS_EVENT_TYPE {
 			// commit comment
+		} else if secondLastElement == RELEASES_EVENT_TYPE {
+			event, err := gh.getReleaseEvent(n)
+			if err != nil {
+				return err
+			}
+			r.fetch <- event
+		} else {
+			log.Println("URLパースを通過した", *n.Subject.LatestCommentURL, *n.Subject.Title)
 		}
+
 		time.Sleep(1 * time.Second)
 	}
 
 	return nil
+}
+
+func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
+	ctx := context.Background()
+
+	u, err := url.Parse(*n.Subject.URL)
+	if err != nil {
+		return nil, err
+	}
+	pullID := path.Base(u.Path)
+	pullIDint, _ := strconv.Atoi(pullID)
+	pull, _, err := gh.Client.PullRequests.Get(ctx, *n.Repository.Owner.Login, *n.Repository.Name, pullIDint)
+	if err != nil {
+		return nil, err
+	}
+
+	// ホストをプロキシサーバにする
+	proxyURL, err := genProxyURL(*pull.HTMLURL)
+	if err != nil {
+		return nil, err
+	}
+
+	htmlBody := mdToHTML([]byte(*pull.Body))
+	htmlTitle := mdToHTML([]byte(*pull.Title))
+
+	event := newEvent(
+		*n.ID,
+		*pull.User.Login,
+		*pull.User.AvatarURL,
+		*pull.Title,
+		string(htmlTitle),
+		string(htmlBody),
+		*pull.HTMLURL,
+		proxyURL,
+		*n.Repository.FullName,
+		genTimeWithTZ(n.UpdatedAt),
+		"PullRequest",
+		*n.UpdatedAt,
+	)
+
+	return event, nil
 }
 
 func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
@@ -162,25 +234,27 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	}
 
 	htmlBody := mdToHTML([]byte(*issue.Body))
+	htmlTitle := mdToHTML([]byte(*issue.Title))
 
 	event := newEvent(
 		*n.ID,
 		*issue.User.Login,
 		*issue.User.AvatarURL,
 		*issue.Title,
+		string(htmlTitle),
 		string(htmlBody),
 		*issue.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
 		genTimeWithTZ(n.UpdatedAt),
-		"open",
+		"Issue",
 		*n.UpdatedAt,
 	)
 
 	return event, nil
 }
 
-func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
+func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 	ctx := context.Background()
 
 	u, err := url.Parse(*n.Subject.LatestCommentURL)
@@ -205,18 +279,65 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	}
 
 	htmlBody := mdToHTML([]byte(*comment.Body))
+	htmlTitle := mdToHTML([]byte(*n.Subject.Title))
 
 	event := newEvent(
 		*n.ID,
 		*comment.User.Login,
 		*comment.User.AvatarURL,
 		*n.Subject.Title,
+		string(htmlTitle),
 		string(htmlBody),
 		*comment.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
 		genTimeWithTZ(n.UpdatedAt),
-		"comment",
+		"Comment",
+		*n.UpdatedAt,
+	)
+
+	return event, nil
+}
+
+func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
+	ctx := context.Background()
+
+	u, err := url.Parse(*n.Subject.LatestCommentURL)
+	if err != nil {
+		return nil, err
+	}
+	releaseID := path.Base(u.Path)
+
+	IDint64, err := strconv.ParseInt(releaseID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	release, _, err := gh.Client.Repositories.GetRelease(ctx, *n.Repository.Owner.Login, *n.Repository.Name, IDint64)
+	if err != nil {
+		return nil, err
+	}
+
+	// ホストをプロキシサーバにする
+	proxyURL, err := genProxyURL(*release.HTMLURL)
+	if err != nil {
+		return nil, err
+	}
+
+	htmlBody := mdToHTML([]byte(*release.Body))
+	htmlTitle := mdToHTML([]byte(*n.Subject.Title))
+
+	event := newEvent(
+		*n.ID,
+		*n.Repository.Owner.Login,     // リリースにはユーザがないのでとりあえずownerを設定する
+		*n.Repository.Owner.AvatarURL, // リリースにはユーザがないのでとりあえずownerを設定する
+		*n.Subject.Title,
+		string(htmlTitle),
+		string(htmlBody),
+		*release.HTMLURL,
+		proxyURL,
+		*n.Repository.FullName,
+		genTimeWithTZ(n.UpdatedAt),
+		"Release",
 		*n.UpdatedAt,
 	)
 

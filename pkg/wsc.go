@@ -12,6 +12,7 @@ type wsClient struct {
 	socket *websocket.Conn
 	// sendはメッセージが送られるチャネル。WebSocketを通じてユーザのブラウザに送られるのを待機する
 	send chan *Event
+	// doneはクライアントに送信済みの通知IDを保持する
 	done map[string]bool
 	mu   *sync.RWMutex
 }
