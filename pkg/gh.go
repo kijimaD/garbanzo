@@ -98,12 +98,11 @@ func (gh *GitHub) processNotification(r *room) error {
 			return err
 		}
 		elements := strings.Split(u.Path, "/")
-		// 最後から2番目の要素を取得する
 		secondLastElement := elements[len(elements)-2]
 		thirdLastElement := elements[len(elements)-3]
-		// issue open: /issue/xxxxx
-		// comment: /issues/comments/xxxxxxxx
-		// commit comment: /comments/xxxx
+		// issue open:        /issue/xxxxx
+		// comment: /issues/comments/xxxxx
+		// commit comment: /comments/xxxxx
 
 		if secondLastElement == ISSUES_EVENT_TYPE {
 			// issue open
@@ -144,19 +143,12 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	}
 
 	// ホストをプロキシサーバにする
-	h, err := url.Parse(*issue.HTMLURL)
+	proxyURL, err := genProxyURL(*issue.HTMLURL)
 	if err != nil {
 		return nil, err
 	}
-	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
 
-	// 日付形式
-	jst := time.FixedZone(timezone, 9*60*60)
-	nowJST := n.UpdatedAt.In(jst)
-	updatedAt := nowJST.Format(timeformat)
-
-	md := []byte(*issue.Body)
-	htmlBody := mdToHTML(md)
+	htmlBody := mdToHTML([]byte(*issue.Body))
 
 	event := newEvent(
 		*n.ID,
@@ -167,7 +159,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*issue.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		updatedAt,
+		genTimeWithTZ(n.UpdatedAt),
 		"open",
 	)
 
@@ -193,19 +185,12 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 	}
 
 	// ホストをプロキシサーバにする
-	h, err := url.Parse(*comment.HTMLURL)
+	proxyURL, err := genProxyURL(*comment.HTMLURL)
 	if err != nil {
 		return nil, err
 	}
-	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
 
-	// 日付形式
-	jst := time.FixedZone(timezone, 9*60*60)
-	nowJST := n.UpdatedAt.In(jst)
-	updatedAt := nowJST.Format(timeformat)
-
-	md := []byte(*comment.Body)
-	htmlBody := mdToHTML(md)
+	htmlBody := mdToHTML([]byte(*comment.Body))
 
 	event := newEvent(
 		*n.ID,
@@ -216,7 +201,7 @@ func (gh *GitHub) getCommentEvent(n *github.Notification) (*Event, error) {
 		*comment.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		updatedAt,
+		genTimeWithTZ(n.UpdatedAt),
 		"comment",
 	)
 
@@ -235,4 +220,21 @@ func mdToHTML(md []byte) []byte {
 	renderer := html.NewRenderer(opts)
 
 	return markdown.Render(doc, renderer)
+}
+
+// URLのホストをプロキシサーバにする
+func genProxyURL(u string) (string, error) {
+	h, err := url.Parse(u)
+	if err != nil {
+		return "", err
+	}
+	proxyURL := PROXY_BASE + h.Path + "#" + h.Fragment
+	return proxyURL, nil
+}
+
+func genTimeWithTZ(t *time.Time) string {
+	jst := time.FixedZone(timezone, 9*60*60)
+	nowJST := t.In(jst)
+	updatedAt := nowJST.Format(timeformat)
+	return updatedAt
 }
