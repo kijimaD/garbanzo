@@ -15,7 +15,7 @@ type wsClient struct {
 	mu   *sync.RWMutex
 }
 
-// 無限ループで待機
+// 無限ループでwebsocketを受信し続ける
 func (wsc *wsClient) read() {
 	for {
 		var event *Event
