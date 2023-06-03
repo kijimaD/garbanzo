@@ -48,7 +48,6 @@ type clientI interface {
 type GitHub struct {
 	Client        *github.Client
 	notifications map[string]*github.Notification
-	events        Events
 }
 
 func newGitHub() *GitHub {
@@ -61,7 +60,6 @@ func newGitHub() *GitHub {
 	return &GitHub{
 		Client:        client,
 		notifications: make(map[string]*github.Notification),
-		events:        Events{},
 	}
 }
 
