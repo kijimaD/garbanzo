@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -84,8 +85,22 @@ const COMMENTS_EVENT_TYPE = "comments"
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification(r *room) error {
-	for id, n := range gh.notifications {
-		if _, exists := r.events[id]; exists {
+	// notificationsを日付順にソートしてからループを実行する
+	keys := make([]string, 0, len(r.events))
+	for key := range gh.notifications {
+		keys = append(keys, key)
+	}
+	sort.SliceStable(keys, func(i, j int) bool {
+		// 過去 → 未来の順
+		return gh.notifications[keys[i]].UpdatedAt.Before(*gh.notifications[keys[j]].UpdatedAt)
+	})
+	sorted := make([]*github.Notification, 0, len(gh.notifications))
+	for _, k := range keys {
+		sorted = append(sorted, gh.notifications[k])
+	}
+
+	for _, n := range sorted {
+		if _, exists := r.events[*n.ID]; exists {
 			continue
 		}
 		if n.Subject.LatestCommentURL == nil {
