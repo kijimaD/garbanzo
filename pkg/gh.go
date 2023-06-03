@@ -81,6 +81,7 @@ func (gh *GitHub) getNotifications() error {
 
 const ISSUES_EVENT_TYPE = "issues"
 const COMMENTS_EVENT_TYPE = "comments"
+const PULLREQUEST_EVENT_TYPE = "pulls"
 
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
@@ -113,11 +114,18 @@ func (gh *GitHub) processNotification(r *room) error {
 		elements := strings.Split(u.Path, "/")
 		secondLastElement := elements[len(elements)-2]
 		thirdLastElement := elements[len(elements)-3]
+		// pull open:         /pulls/xxxxx
 		// issue open:        /issue/xxxxx
 		// comment: /issues/comments/xxxxx
 		// commit comment: /comments/xxxxx
 
-		if secondLastElement == ISSUES_EVENT_TYPE {
+		if secondLastElement == PULLREQUEST_EVENT_TYPE {
+			event, err := gh.getPullRequestEvent(n)
+			if err != nil {
+				return err
+			}
+			r.fetch <- event
+		} else if secondLastElement == ISSUES_EVENT_TYPE {
 			// issue open
 			event, err := gh.getIssueEvent(n)
 			if err != nil {
@@ -139,6 +147,45 @@ func (gh *GitHub) processNotification(r *room) error {
 	}
 
 	return nil
+}
+
+func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
+	ctx := context.Background()
+
+	u, err := url.Parse(*n.Subject.URL)
+	if err != nil {
+		return nil, err
+	}
+	pullID := path.Base(u.Path)
+	pullIDint, _ := strconv.Atoi(pullID)
+	pull, _, err := gh.Client.PullRequests.Get(ctx, *n.Repository.Owner.Login, *n.Repository.Name, pullIDint)
+	if err != nil {
+		return nil, err
+	}
+
+	// ホストをプロキシサーバにする
+	proxyURL, err := genProxyURL(*pull.HTMLURL)
+	if err != nil {
+		return nil, err
+	}
+
+	htmlBody := mdToHTML([]byte(*pull.Body))
+
+	event := newEvent(
+		*n.ID,
+		*pull.User.Login,
+		*pull.User.AvatarURL,
+		*pull.Title,
+		string(htmlBody),
+		*pull.HTMLURL,
+		proxyURL,
+		*n.Repository.FullName,
+		genTimeWithTZ(n.UpdatedAt),
+		"PullRequest",
+		*n.UpdatedAt,
+	)
+
+	return event, nil
 }
 
 func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
@@ -173,7 +220,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		proxyURL,
 		*n.Repository.FullName,
 		genTimeWithTZ(n.UpdatedAt),
-		"open",
+		"Issue",
 		*n.UpdatedAt,
 	)
 
