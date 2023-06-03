@@ -111,13 +111,17 @@ func (gh *GitHub) processNotification(r *room) error {
 			// https://github.com/orgs/community/discussions/15252
 			continue
 		}
-		if n.Subject.LatestCommentURL == nil {
-			// TODO: PRのレビュースレッドに対応する
-			log.Println("LatestComentURLがないためスルーした:", *n.Subject.Title, *n.Subject.Type)
-			continue
+
+		var originURL string
+		if *n.Subject.Type == "PullRequest" && n.Subject.LatestCommentURL == nil {
+			// PRの場合はLatestCommentURLがない。なのでコメントやディスカッションを特定できない
+			// TODO: notification URLをたどればいけそうな気はする
+			originURL = *n.Subject.URL
+		} else {
+			originURL = *n.Subject.LatestCommentURL
 		}
 
-		u, err := url.Parse(*n.Subject.LatestCommentURL)
+		u, err := url.Parse(originURL)
 		if err != nil {
 			return err
 		}
