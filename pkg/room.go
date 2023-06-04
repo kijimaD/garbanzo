@@ -27,7 +27,7 @@ type room struct {
 	// wsClientsには接続しているすべてのクライアントが保持される
 	wsClients map[*wsClient]bool
 	// 既読にしようとしている通知IDを保持するためのチャネル
-	markRead chan *msg
+	markRead chan *mark
 	// tracerは操作のログを受け取る
 	tracer trace.Tracer
 	events Events
@@ -41,7 +41,7 @@ func newRoom() *room {
 		join:      make(chan *wsClient),
 		leave:     make(chan *wsClient),
 		wsClients: make(map[*wsClient]bool),
-		markRead:  make(chan *msg),
+		markRead:  make(chan *mark),
 		tracer:    trace.Off(), // デフォルトではログ出力はされない
 		events:    make(Events),
 		mu:        &sync.RWMutex{},
@@ -110,8 +110,8 @@ func (r *room) run() {
 			delete(r.wsClients, wsClient)
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
-		case msg := <-r.markRead:
-			err := r.markThreadRead(msg.ID)
+		case mark := <-r.markRead:
+			err := r.markThreadRead(mark.ID)
 			if err != nil {
 				log.Println("mark thread read err:", err)
 			}

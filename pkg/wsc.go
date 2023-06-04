@@ -19,14 +19,14 @@ type wsClient struct {
 	mu   *sync.RWMutex
 }
 
-type msg struct {
+type mark struct {
 	ID string
 }
 
 // 無限ループでwebsocketを受信し続ける
 func (wsc *wsClient) read() {
 	for {
-		var m *msg
+		var m *mark
 		if err := wsc.socket.ReadJSON(&m); err == nil {
 			wsc.room.markRead <- m
 		} else {
