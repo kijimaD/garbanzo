@@ -21,9 +21,8 @@
 
                      // DOMを追加する
                      messages.append(
-                         $("<button>").addClass("border mb-1 text-start text-dark btn btn-outline-light")
+                         $("<div>").addClass("mb-1 text-start text-dark")
                                       .css({maxWidth: 480})
-                                      .attr("id","x-notification-link-"+msg.NotificationID, "type", "button")
                                       .append(
                                           $("<div>").addClass("container").append(
                                               $("<img>").addClass("d-inline rounded-circle text-right")
@@ -48,8 +47,14 @@
                                                               float: "right",
                                                           }),
                                               $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary"),
-                                              $("<h6>").html(msg.TitleHTML)
-                                                       .addClass("h6 text-break"),
+                                              $("<div>").addClass("row").append(
+                                                  $("<h6>").html(msg.TitleHTML)
+                                                           .addClass("col-md-10 h6 text-break btn shadow-sm bg-body rounded")
+                                                           .attr("id","x-notification-link-"+msg.NotificationID, "type", "button"),
+                                                  $("<div>").addClass("col-md-2").append(
+                                                      $("<button>").addClass("btn btn-light border-dark btn-lg bg-light bi bi-check-lg"),
+                                                  )
+                                              )
                                               // $("<p>").html(msg.Body)
                                               //         .addClass("nav-item mb-2 d-inline text-break"),
                                           )
@@ -88,7 +93,7 @@
                         <!-- <li class="nav-item mx-3 text-muted active"><a href="#" class="nav-link text-secondary">Option</a></li> -->
                     </ul>
                 </header>
-                <ul class="nav flex-column m-0 px-3" id="messages">
+                <ul class="nav flex-column m-0 px-3 bg-light" id="messages">
                     <!-- <div class="card mb-1">
                          <div class="container">
                          <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">
