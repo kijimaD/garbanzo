@@ -21,46 +21,68 @@
 
                      // DOMを追加する
                      messages.append(
-                         $("<button>").addClass("border mb-1 text-start text-dark btn btn-outline-light")
-                                      .css({maxWidth: 480})
-                                      .attr("id","x-notification-link-"+msg.NotificationID, "type", "button")
-                                      .append(
-                                          $("<div>").addClass("container").append(
-                                              $("<img>").addClass("d-inline rounded-circle text-right")
-                                                        .css({
-                                                            width: 40,
-                                                            verticalAlign: "middle",
-                                                        })
-                                                        .attr("src", msg.AvatarURL),
-                                              $("<small>").text(msg.UserName),
-                                              $("<a>").text(msg.RepoName)
-                                                      .attr("href", msg.HTMLURL)
-                                                      .attr("target", "_blank")
-                                                      .addClass("text-muted small")
+                         $("<div>").addClass("mb-1 text-start text-dark")
+                                   .attr("id", "x-notification-div-"+msg.NotificationID)
+                                   .css({maxWidth: 480})
+                                   .append(
+                                       $("<div>").addClass("container").append(
+                                           $("<img>").addClass("d-inline rounded-circle text-right")
+                                                     .css({
+                                                         width: 40,
+                                                         verticalAlign: "middle",
+                                                     })
+                                                     .attr("src", msg.AvatarURL),
+                                           $("<small>").text(msg.UserName)
+                                                       .addClass("me-2"),
+                                           $("<a>").text(msg.RepoName)
+                                                   .attr("href", msg.HTMLURL)
+                                                   .attr("target", "_blank")
+                                                   .addClass("text-muted small ms-2")
+                                                   .css({
+                                                       float: "right",
+                                                   }).append(
+                                                       $("<i>").addClass("bi bi-arrow-up-right")
+                                                   ),
+                                           $("<small>").text(msg.When)
+                                                       .addClass("text-muted")
+                                                       .css({
+                                                           float: "right",
+                                                       }),
+                                           $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary me-2")
                                                       .css({
                                                           float: "right",
-                                                      }).append(
-                                                          $("<i>").addClass("bi bi-arrow-up-right")
-                                                      ),
-                                              $("<small>").text(msg.When)
-                                                          .addClass("text-muted")
-                                                          .css({
-                                                              float: "right",
-                                                          }),
-                                              $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary"),
-                                              $("<h6>").html(msg.TitleHTML)
-                                                       .addClass("h6 text-break"),
-                                              // $("<p>").html(msg.Body)
-                                              //         .addClass("nav-item mb-2 d-inline text-break"),
-                                          )
-                                      )
+                                                      }),
+                                           $("<div>").addClass("row").append(
+                                               $("<h6>").html(msg.TitleHTML)
+                                                        .addClass("col-md-10 h6 fw-bold text-break btn shadow-sm bg-body rounded")
+                                                        .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button"),
+                                               $("<div>").addClass("col-md-2").append(
+                                                   $("<button>").addClass("btn btn-light btn shadow-sm bg-body rounded bi bi-check-lg")
+                                                                .attr("id", "x-notification-mark-"+msg.NotificationID, "type", "button")
+                                               ),
+                                           )
+                                           // $("<p>").html(msg.Body)
+                                           //         .addClass("nav-item mb-2 d-inline text-break"),
+                                       )
+                                   )
                      );
 
                      $(document).ready(function() {
                          // 各要素にクリックイベントのハンドラーを設定する
+                         // 切替ボタン
                          $('#x-notification-link-'+msg.NotificationID).click(function() {
                              var iframe = document.getElementById('x-iframe');
                              iframe.src = msg.ProxyURL;
+                         });
+
+                         // 既読ボタン
+                         $('#x-notification-mark-'+msg.NotificationID).click(function() {
+                             if (!socket) {
+                                 alert("error: Close WebSocket");
+                             }
+                             socket.send(JSON.stringify({"id": msg.NotificationID}));
+
+                             $('#x-notification-div-'+msg.NotificationID).remove();
                          });
                      });
 
@@ -74,6 +96,9 @@
              }
          });
         </script>
+        <style type="text/css">
+         p { margin-bottom: 0;} /* md->htmlに変換された見出しタグがpタグで閉じられていているため */
+        </style>
     </head>
     <body class="h-100">
         <div class="d-flex flex-row">
@@ -88,7 +113,7 @@
                         <!-- <li class="nav-item mx-3 text-muted active"><a href="#" class="nav-link text-secondary">Option</a></li> -->
                     </ul>
                 </header>
-                <ul class="nav flex-column m-0 px-3" id="messages">
+                <ul class="nav flex-column m-0 px-3 bg-light" id="messages">
                     <!-- <div class="card mb-1">
                          <div class="container">
                          <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">
@@ -109,7 +134,7 @@
                 <!-- コンテンツ -->
                 <div class="">
                     <div class="d-flex flex-row">
-                        <iframe style="width: 100%; height: 100vh;" src="http://localhost:8081/golang/go" id="x-iframe" />
+                        <iframe style="width: 100%; height: 100vh;" src="http://localhost:8081" id="x-iframe" />
                     </div>
                 </div>
             </main>

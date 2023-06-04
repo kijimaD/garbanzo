@@ -12,16 +12,23 @@ type wsClient struct {
 	socket *websocket.Conn
 	// sendはメッセージが送られるチャネル。WebSocketを通じてユーザのブラウザに送られるのを待機する
 	send chan *Event
+	// roomはこのクライアントが参加している接続
+	room *room
 	// doneはクライアントに送信済みの通知IDを保持する
 	done map[string]bool
 	mu   *sync.RWMutex
 }
 
+type mark struct {
+	ID string
+}
+
 // 無限ループでwebsocketを受信し続ける
 func (wsc *wsClient) read() {
 	for {
-		var event *Event
-		if err := wsc.socket.ReadJSON(&event); err == nil {
+		var m *mark
+		if err := wsc.socket.ReadJSON(&m); err == nil {
+			wsc.room.markRead <- m
 		} else {
 			// 読み込めないと終了
 			// このループを抜けるとハンドラの実行が終了する。deferによってleaveチャンネルに送られ、送信対象から外される
