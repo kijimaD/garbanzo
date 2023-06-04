@@ -206,7 +206,7 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 		proxyURL,
 		*n.Repository.FullName,
 		genTimeWithTZ(n.UpdatedAt),
-		"PullRequest",
+		"PR",
 		*n.UpdatedAt,
 	)
 
