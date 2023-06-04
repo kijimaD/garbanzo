@@ -22,6 +22,7 @@
                      // DOMを追加する
                      messages.append(
                          $("<div>").addClass("mb-1 text-start text-dark")
+                                      .attr("id", "x-notification-div-"+msg.NotificationID)
                                       .css({maxWidth: 480})
                                       .append(
                                           $("<div>").addClass("container").append(
@@ -76,6 +77,8 @@
                                  alert("error: Close WebSocket");
                              }
                              socket.send(JSON.stringify({"id": msg.NotificationID}));
+
+                             $('#x-notification-div-'+msg.NotificationID).remove();
                          });
                      });
 
