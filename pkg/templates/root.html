@@ -50,10 +50,11 @@
                                               $("<div>").addClass("row").append(
                                                   $("<h6>").html(msg.TitleHTML)
                                                            .addClass("col-md-10 h6 text-break btn shadow-sm bg-body rounded")
-                                                           .attr("id","x-notification-link-"+msg.NotificationID, "type", "button"),
+                                                           .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button"),
                                                   $("<div>").addClass("col-md-2").append(
-                                                      $("<button>").addClass("btn btn-light border-dark btn-lg bg-light bi bi-check-lg"),
-                                                  )
+                                                      $("<button>").addClass("btn btn-light border-dark btn-lg bg-light bi bi-check-lg")
+                                                                   .attr("id", "x-notification-mark-"+msg.NotificationID, "type", "button")
+                                                  ),
                                               )
                                               // $("<p>").html(msg.Body)
                                               //         .addClass("nav-item mb-2 d-inline text-break"),
@@ -63,9 +64,18 @@
 
                      $(document).ready(function() {
                          // 各要素にクリックイベントのハンドラーを設定する
+                         // 切替ボタン
                          $('#x-notification-link-'+msg.NotificationID).click(function() {
                              var iframe = document.getElementById('x-iframe');
                              iframe.src = msg.ProxyURL;
+                         });
+
+                         // 既読ボタン
+                         $('#x-notification-mark-'+msg.NotificationID).click(function() {
+                             if (!socket) {
+                                 alert("error: Close WebSocket");
+                             }
+                             socket.send(JSON.stringify({"id": msg.NotificationID}));
                          });
                      });
 

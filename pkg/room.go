@@ -1,6 +1,7 @@
 package garbanzo
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -25,6 +26,8 @@ type room struct {
 	leave chan *wsClient
 	// wsClientsには接続しているすべてのクライアントが保持される
 	wsClients map[*wsClient]bool
+	// 既読にしようとしている通知IDを保持するためのチャネル
+	markRead chan *msg
 	// tracerは操作のログを受け取る
 	tracer trace.Tracer
 	events Events
@@ -38,6 +41,7 @@ func newRoom() *room {
 		join:      make(chan *wsClient),
 		leave:     make(chan *wsClient),
 		wsClients: make(map[*wsClient]bool),
+		markRead:  make(chan *msg),
 		tracer:    trace.Off(), // デフォルトではログ出力はされない
 		events:    make(Events),
 		mu:        &sync.RWMutex{},
@@ -106,6 +110,11 @@ func (r *room) run() {
 			delete(r.wsClients, wsClient)
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
+		case msg := <-r.markRead:
+			err := r.markThreadRead(msg.ID)
+			if err != nil {
+				log.Println("mark thread read err:", err)
+			}
 		case fetch := <-r.fetch:
 			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch
@@ -142,6 +151,7 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	wsc := &wsClient{
 		socket: socket,
 		send:   make(chan *Event, messageBufferSize),
+		room:   r,
 		done:   make(map[string]bool),
 		mu:     &sync.RWMutex{},
 	}
@@ -164,6 +174,16 @@ func (r *room) fetchEvent() error {
 		return err
 	}
 	fmt.Print("e")
+	return nil
+}
+
+func (r *room) markThreadRead(id string) error {
+	gh := newGitHub()
+	ctx := context.Background()
+	_, err := gh.Client.Activity.MarkThreadRead(ctx, id)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
