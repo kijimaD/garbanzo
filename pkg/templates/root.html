@@ -17,7 +17,7 @@
                      alert("close connection");
                  }
                  socket.onmessage = function(e) {
-                     var msg = JSON.parse(e.data)
+                     var msg = JSON.parse(e.data);
 
                      // DOMを追加する
                      messages.append(
@@ -55,6 +55,7 @@
                                            $("<div>").addClass("row").append(
                                                $("<h6>").html(msg.TitleHTML)
                                                         .addClass("col-md-10 h6 fw-bold text-break btn shadow-sm bg-body rounded")
+                                                        .addClass("x-element")
                                                         .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button"),
                                                $("<div>").addClass("col-md-2").append(
                                                    $("<button>").addClass("btn btn-light btn shadow-sm bg-body rounded bi bi-check-lg")
@@ -84,8 +85,8 @@
                                  "id": msg.NotificationID,
                                  "url": msg.ProxyURL,
                              }));
-
                              $('#x-notification-div-'+msg.NotificationID).remove();
+                             $('h6.x-element').eq(0).trigger("click"); // 次の通知を選択する
                          });
                      });
 
