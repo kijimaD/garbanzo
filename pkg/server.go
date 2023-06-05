@@ -2,7 +2,6 @@ package garbanzo
 
 import (
 	"embed"
-	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -56,7 +55,6 @@ func rootHandler(c echo.Context) error {
 func faviconHandler(c echo.Context) error {
 	data, err := fss.ReadFile("static/favicon.ico")
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return c.Blob(http.StatusOK, "image/x-icon", data)
