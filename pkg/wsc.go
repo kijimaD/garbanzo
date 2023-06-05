@@ -20,7 +20,8 @@ type wsClient struct {
 }
 
 type mark struct {
-	ID string
+	ID  string
+	URL string // proxy URL
 }
 
 // 無限ループでwebsocketを受信し続ける

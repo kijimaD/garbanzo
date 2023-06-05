@@ -111,6 +111,10 @@ func (gh *GitHub) processNotification(r *room) error {
 			// https://github.com/orgs/community/discussions/15252
 			continue
 		}
+		if *n.Subject.Type == "CheckSuite" {
+			// コミットへの通知? URLを持っていない
+			continue
+		}
 
 		var originURL string
 		if *n.Subject.Type == "PullRequest" && n.Subject.LatestCommentURL == nil {

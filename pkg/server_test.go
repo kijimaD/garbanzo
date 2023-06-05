@@ -38,7 +38,7 @@ func TestFaviconHandler(t *testing.T) {
 }
 
 // Proxy Server.
-func TestGHHandler(t *testing.T) {
+func TestHomeHandler(t *testing.T) {
 	router := NewProxyRouter()
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
@@ -50,5 +50,20 @@ func TestGHHandler(t *testing.T) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, string(respBody), "github")
+	assert.Contains(t, string(respBody), "Garbanzo is fast GitHub viewer!")
+}
+
+func TestGHHandler(t *testing.T) {
+	router := NewProxyRouter()
+	testServer := httptest.NewServer(router)
+	defer testServer.Close()
+
+	req, _ := http.NewRequest("GET", testServer.URL+"/kijimaD", nil)
+
+	client := new(http.Client)
+	resp, _ := client.Do(req)
+	respBody, _ := ioutil.ReadAll(resp.Body)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Contains(t, string(respBody), "GitHub")
 }

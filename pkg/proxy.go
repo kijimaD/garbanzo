@@ -1,6 +1,7 @@
 package garbanzo
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sync"
@@ -10,9 +11,20 @@ import (
 
 func NewProxyRouter() *echo.Echo {
 	e := echo.New()
+	e.GET("/", homeHandler)
 	e.GET("/*", ghHandler)
 
 	return e
+}
+
+func homeHandler(c echo.Context) error {
+	data, err := fss.ReadFile("static/home.md")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	html := string(mdToHTML([]byte(data)))
+	return c.HTML(http.StatusOK, html)
 }
 
 var proxyCache = make(map[string]string)
