@@ -115,6 +115,8 @@ func (r *room) run() {
 			if err != nil {
 				log.Println("mark thread read err:", err)
 			}
+			delete(r.events, mark.ID)
+			delete(proxyCache, mark.URL)
 		case fetch := <-r.fetch:
 			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch

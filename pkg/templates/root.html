@@ -80,7 +80,10 @@
                              if (!socket) {
                                  alert("error: Close WebSocket");
                              }
-                             socket.send(JSON.stringify({"id": msg.NotificationID}));
+                             socket.send(JSON.stringify({
+                                 "id": msg.NotificationID,
+                                 "url": msg.ProxyURL,
+                             }));
 
                              $('#x-notification-div-'+msg.NotificationID).remove();
                          });
