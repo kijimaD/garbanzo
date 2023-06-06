@@ -11,6 +11,7 @@ type Event struct {
 	Title           string    // 通知のタイトル(プレーンテキスト)
 	TitleHTML       string    // 通知のタイトル(HTML)
 	Body            string    // 通知の本文
+	BodyHTML        string    // 通知の本文(HTML)
 	HTMLURL         string    // 通常の、ホストがgithub.comのURL
 	ProxyURL        string    // iframe遷移に使う、ホストがリバースプロキシ先で置き換えられたURL
 	RepoName        string    // フルリポジトリ名 golang/go
@@ -22,7 +23,7 @@ type Event struct {
 
 type Events map[string]*Event // keyにNotificationIDを使う
 
-func newEvent(notificationID string, userName string, avatarURL string, title string, titleHTML string, body string, HTMLURL string, ProxyURL string, repoName string, when string, kind string, updatedAt time.Time) *Event {
+func newEvent(notificationID string, userName string, avatarURL string, title string, titleHTML string, body string, bodyHTML, HTMLURL string, ProxyURL string, repoName string, when string, kind string, updatedAt time.Time) *Event {
 	return &Event{
 		NotificationID:  notificationID,
 		UserName:        userName,
@@ -30,6 +31,7 @@ func newEvent(notificationID string, userName string, avatarURL string, title st
 		Title:           title,
 		TitleHTML:       titleHTML,
 		Body:            body,
+		BodyHTML:        bodyHTML,
 		HTMLURL:         HTMLURL,
 		ProxyURL:        ProxyURL,
 		RepoName:        repoName,
