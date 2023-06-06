@@ -53,19 +53,25 @@
                                                           float: "right",
                                                       }),
                                            $("<div>").addClass("row").append(
-                                               $("<h6>").html(msg.TitleHTML)
-                                                        .addClass("col-md-10 h6 fw-bold text-break btn shadow-sm bg-body rounded")
-                                                        .addClass("x-element")
-                                                        .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button"),
+                                               $("<div>").addClass("col-md-10 btn shadow-sm bg-body rounded")
+                                                         .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button")
+                                                         .append(
+                                                             $("<h6>").html(msg.TitleHTML)
+                                                                      .addClass("h6 fw-bold text-break  text-start")
+                                                                      .addClass("x-element"),
+                                                             $("<p>").text(msg.Body.substr(0, 100))
+                                                                     .addClass("text-break text-start"),
+                                                         ),
                                                $("<div>").addClass("col-md-2").append(
                                                    $("<button>").addClass("btn btn-light btn shadow-sm bg-body rounded bi bi-check-lg")
                                                                 .attr("id", "x-notification-mark-"+msg.NotificationID, "type", "button")
                                                ),
-                                           )
-                                           // $("<p>").html(msg.Body)
-                                           //         .addClass("nav-item mb-2 d-inline text-break"),
+                                           ),
                                        )
+                                       // $("<p>").html(msg.Body)
+                                       //         .addClass("nav-item mb-2 d-inline text-break"),
                                    )
+
                      );
 
                      $(document).ready(function() {
@@ -93,6 +99,7 @@
                      // プッシュ通知
                      if (msg.IsNotifyBrowser) {
                          Push.create(msg.Title,{
+                             body: msg.Body.substr(0, 100),
                              icon: msg.AvatarURL,
                          });
                      }
