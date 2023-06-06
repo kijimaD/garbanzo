@@ -57,10 +57,10 @@
                                                          .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button")
                                                          .append(
                                                              $("<h6>").html(msg.TitleHTML)
-                                                                      .addClass("h6 fw-bold text-break ")
+                                                                      .addClass("h6 fw-bold text-break  text-start")
                                                                       .addClass("x-element"),
                                                              $("<p>").text(msg.Body.substr(0, 100))
-                                                                     .addClass("text-break"),
+                                                                     .addClass("text-break text-start"),
                                                          ),
                                                $("<div>").addClass("col-md-2").append(
                                                    $("<button>").addClass("btn btn-light btn shadow-sm bg-body rounded bi bi-check-lg")
