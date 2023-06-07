@@ -196,7 +196,13 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 		return nil, err
 	}
 
-	htmlBody := mdToHTML([]byte(*pull.Body))
+	// Bodyはnilのことがある
+	var body string
+	var htmlBody []byte
+	if pull.Body != nil {
+		body = *pull.Body
+		htmlBody = mdToHTML([]byte(*pull.Body))
+	}
 	htmlTitle := mdToHTML([]byte(*pull.Title))
 
 	event := newEvent(
@@ -205,7 +211,7 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 		*pull.User.AvatarURL,
 		*pull.Title,
 		string(htmlTitle),
-		*pull.Body,
+		body,
 		string(htmlBody),
 		*pull.HTMLURL,
 		proxyURL,
@@ -238,7 +244,13 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		return nil, err
 	}
 
-	htmlBody := mdToHTML([]byte(*issue.Body))
+	// Bodyはnilのことがある
+	var body string
+	var htmlBody []byte
+	if issue.Body != nil {
+		body = *issue.Body
+		htmlBody = mdToHTML([]byte(*issue.Body))
+	}
 	htmlTitle := mdToHTML([]byte(*issue.Title))
 
 	event := newEvent(
@@ -247,7 +259,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*issue.User.AvatarURL,
 		*issue.Title,
 		string(htmlTitle),
-		*issue.Body,
+		body,
 		string(htmlBody),
 		*issue.HTMLURL,
 		proxyURL,
@@ -284,7 +296,13 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 		return nil, err
 	}
 
-	htmlBody := mdToHTML([]byte(*comment.Body))
+	// Bodyはnilのことがある
+	var body string
+	var htmlBody []byte
+	if comment.Body != nil {
+		body = *comment.Body
+		htmlBody = mdToHTML([]byte(*comment.Body))
+	}
 	htmlTitle := mdToHTML([]byte(*n.Subject.Title))
 
 	event := newEvent(
@@ -293,7 +311,7 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 		*comment.User.AvatarURL,
 		*n.Subject.Title,
 		string(htmlTitle),
-		*comment.Body,
+		body,
 		string(htmlBody),
 		*comment.HTMLURL,
 		proxyURL,
@@ -330,7 +348,13 @@ func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
 		return nil, err
 	}
 
-	htmlBody := mdToHTML([]byte(*release.Body))
+	// Bodyはnilのことがある
+	var body string
+	var htmlBody []byte
+	if release.Body != nil {
+		body = *release.Body
+		htmlBody = mdToHTML([]byte(*release.Body))
+	}
 	htmlTitle := mdToHTML([]byte(*n.Subject.Title))
 
 	event := newEvent(
@@ -339,7 +363,7 @@ func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
 		*n.Repository.Owner.AvatarURL, // リリースにはユーザがないのでとりあえずownerを設定する
 		*n.Subject.Title,
 		string(htmlTitle),
-		*release.Body,
+		body,
 		string(htmlBody),
 		*release.HTMLURL,
 		proxyURL,
