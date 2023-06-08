@@ -24,6 +24,8 @@ $ GH_TOKEN=xxx garbanzo
 
 Need GitHub Personal Access Token(**notification scope**)! Token is used to fetch users notifications.
 
+<img src="https://github.com/kijimaD/garbanzo/assets/11595790/9cabb383-a5a2-484c-8967-0860ad87d5a9" width=800>
+
 and, access http://localhost:8080
 
 ## docker run
