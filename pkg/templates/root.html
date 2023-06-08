@@ -98,10 +98,13 @@
 
                      // プッシュ通知
                      if (msg.IsNotifyBrowser) {
-                         Push.create(msg.Title,{
-                             body: msg.Body.substr(0, 100),
-                             icon: msg.AvatarURL,
-                         });
+                         Push.create(
+                             "[" + msg.Kind + "]" + msg.Title,
+                             {
+                                 body: msg.Body.substr(0, 100),
+                                 icon: msg.AvatarURL,
+                             }
+                         );
                      }
                  }
              }
