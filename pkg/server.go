@@ -43,7 +43,7 @@ func NewRouter(templDir string, publicDir string) *echo.Echo {
 	e := echo.New()
 	e.Renderer = renderer
 	e.GET("/", rootHandler)
-	e.GET("/ws", room.handleWebSocket)
+	e.GET("/events", room.eventHandler)
 	e.GET("/favicon.ico", faviconHandler)
 	return e
 }

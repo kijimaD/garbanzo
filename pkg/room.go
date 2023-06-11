@@ -143,7 +143,7 @@ func (r *room) run() {
 	}
 }
 
-func (r *room) handleWebSocket(c echo.Context) error {
+func (r *room) eventHandler(c echo.Context) error {
 	socket, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		log.Fatal("ServeHTTP:", err)

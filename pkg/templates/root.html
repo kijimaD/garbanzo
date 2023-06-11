@@ -13,7 +13,7 @@
              if (!window["WebSocket"]) {
                  alert("Error: This browser not support WebSocket")
              } else {
-                 socket = new WebSocket("ws://{{.Host}}/ws"); /* r.Hostのこと。rはecho.Request() */
+                 socket = new WebSocket("ws://{{.Host}}/events"); /* r.Hostのこと。rはecho.Request() */
                  socket.onclose = function() {
                      alert("close connection");
                  }
