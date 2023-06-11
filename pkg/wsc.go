@@ -55,31 +55,33 @@ func (wsc *wsClient) write() {
 		}
 	}()
 
-	for send := range wsc.send {
-		// doneに存在しないときだけ書き込み
-		wsc.mu.RLock()
-		_, exists := wsc.done[send.NotificationID]
-		wsc.mu.RUnlock()
-		if exists {
-			continue
-		}
+	go func() {
+		for send := range wsc.send {
+			// doneに存在しないときだけ書き込み
+			wsc.mu.RLock()
+			_, exists := wsc.done[send.NotificationID]
+			wsc.mu.RUnlock()
+			if exists {
+				continue
+			}
 
-		// 直近のイベントだけブラウザ通知する
-		now := time.Now()
-		minutesAgo := now.Add(-notifyMinutesAgo * time.Minute)
-		// 「更新時間」が、「更新時刻よりN分前」より未来にあるか?
-		// (過去) ---> 今-N分前 ---> |-> 通知有効期間 <-| ---> 今 ---> (未来)
-		if send.UpdatedAt.After(minutesAgo) {
-			send.IsNotifyBrowser = true
-		}
+			// 直近のイベントだけブラウザ通知する
+			now := time.Now()
+			minutesAgo := now.Add(-notifyMinutesAgo * time.Minute)
+			// 「更新時間」が、「更新時刻よりN分前」より未来にあるか?
+			// (過去) ---> 今-N分前 ---> |-> 通知有効期間 <-| ---> 今 ---> (未来)
+			if send.UpdatedAt.After(minutesAgo) {
+				send.IsNotifyBrowser = true
+			}
 
-		err := wsc.socket.WriteJSON(send)
-		if err != nil {
-			break
+			err := wsc.socket.WriteJSON(send)
+			if err != nil {
+				break
+			}
+			wsc.mu.Lock()
+			wsc.done[send.NotificationID] = true
+			wsc.mu.Unlock()
 		}
-		wsc.mu.Lock()
-		wsc.done[send.NotificationID] = true
-		wsc.mu.Unlock()
-	}
-	wsc.socket.Close()
+		wsc.socket.Close()
+	}()
 }
