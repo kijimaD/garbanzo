@@ -43,11 +43,15 @@ func newEvent(notificationID string, userName string, avatarURL string, title st
 }
 
 type Stats struct {
-	ReadCount int
+	ReadCount  int
+	EventCount int
+	CacheCount int
 }
 
-func newStats(readCount int) *Stats {
+func newStats() *Stats {
 	return &Stats{
-		ReadCount: readCount,
+		ReadCount:  0,
+		EventCount: 0,
+		CacheCount: 0,
 	}
 }

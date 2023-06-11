@@ -112,7 +112,9 @@
 
                      // 既読カウント
                      if (msg.ReadCount != undefined) {
-                         $('#x-counter').html(msg.ReadCount);
+                         $('#x-read-counter').html(msg.ReadCount);
+                         $('#x-event-counter').html(msg.EventCount);
+                         $('#x-cache-counter').html(msg.CacheCount);
                      }
                  }
              }
@@ -132,11 +134,6 @@
                         <h1 class="fs-2 text-primary fw-bold py-0 col-md-10">
                             Garbanzo
                         </h1>
-                        <!-- <ul class="navbar-nav d-flex flex-row col-md-2">
-                             <li class="nav-item mx-3 text-muted active">
-                             <span href="#" class="badge bg-secondary" id="x-counter">0</span>
-                             </li>
-                             </ul> -->
                     </div>
                 </header>
                 <ul class="nav flex-column m-0 px-3 bg-light" id="messages">
@@ -152,7 +149,9 @@
             <nav class="bg-white" style="min-width: 224px;">
                 <ul class="nav flex-column m-0 px-3" id="messages">
                     <li class="nav-item mx-3 text-muted active">
-                        <p>read: <span href="#" class="badge bg-secondary" id="x-counter">0</span></p>
+                        <p>read: <span href="#" class="badge bg-secondary" id="x-read-counter">0</span></p>
+                        <p>event: <span href="#" class="badge bg-secondary" id="x-event-counter">0</span></p>
+                        <p>cache: <span href="#" class="badge bg-secondary" id="x-cache-counter">0</span></p>
                     </li>
                 </ul>
             </nav>

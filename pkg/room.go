@@ -2,7 +2,6 @@ package garbanzo
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -45,7 +44,7 @@ func newRoom() *room {
 		wsClients:  make(map[*wsClient]bool),
 		markRead:   make(chan *mark),
 		stats:      make(chan *Stats, 1), // 同じゴルーチン内で送信と受信をするため、容量ゼロだと止まってしまう
-		statsStore: newStats(0),
+		statsStore: newStats(),
 		tracer:     trace.Off(), // デフォルトではログ出力はされない
 		events:     make(Events),
 		mu:         &sync.RWMutex{},
@@ -134,6 +133,9 @@ func (r *room) run() {
 			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch
 			r.mu.Unlock()
+			r.statsStore.EventCount = len(r.events)
+			r.statsStore.CacheCount = len(proxyCache)
+			r.stats <- r.statsStore
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
 				wsClient.mu.RLock()
@@ -190,7 +192,6 @@ func (r *room) fetchEvent() error {
 	if err != nil {
 		return err
 	}
-	fmt.Print("e")
 	return nil
 }
 
@@ -222,7 +223,6 @@ func (r *room) fetchCache() error {
 		proxyMutex.Unlock()
 
 		time.Sleep(time.Second * 1)
-		fmt.Print("c")
 	}
 	return nil
 }
