@@ -124,7 +124,6 @@ func (r *room) run() {
 			r.statsStore.ReadCount++
 			r.stats <- r.statsStore
 		case stats := <-r.stats:
-			fmt.Println("receive stats change!", stats)
 			for wsClient := range r.wsClients {
 				select {
 				case wsClient.stats <- stats:
@@ -174,8 +173,9 @@ func (r *room) eventHandler(c echo.Context) error {
 	}
 
 	r.join <- wsc
+	r.stats <- r.statsStore
 	defer func() { r.leave <- wsc }()
-	go wsc.write() // c.sendの内容をwebsocketに書き込む
+	go wsc.write() // websocketに書き込む
 	wsc.read()     // このメソッドの中の無限ループによって接続は保持され、終了を指示されるまで他の処理をブロックする
 	return nil
 }
