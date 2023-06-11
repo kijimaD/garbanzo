@@ -118,6 +118,9 @@ func (r *room) run() {
 			err := r.markThreadRead(mark.ID)
 			if err != nil {
 				log.Println("mark thread read err:", err)
+			}
+			delete(r.events, mark.ID)
+			delete(proxyCache, mark.URL)
 			r.statsStore.ReadCount++
 			r.stats <- r.statsStore
 		case stats := <-r.stats:
@@ -128,8 +131,6 @@ func (r *room) run() {
 					r.tracer.Trace("send stats to client")
 				}
 			}
-			delete(r.events, mark.ID)
-			delete(proxyCache, mark.URL)
 		case fetch := <-r.fetch:
 			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch
