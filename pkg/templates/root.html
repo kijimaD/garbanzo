@@ -7,6 +7,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/push.js/1.0.12/push.min.js" integrity="sha512-DjIQO7OxE8rKQrBLpVCk60Zu0mcFfNx2nVduB96yk5HS/poYZAkYu5fxpwXj3iet91Ezqq2TNN6cJh9Y5NtfWg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script>
          $(function() {
+             var count = 0; // 既読数
              var socket = null;
              var messages = $("#messages");
              if (!window["WebSocket"]) {
@@ -93,6 +94,10 @@
                              }));
                              $('#x-notification-div-'+msg.NotificationID).remove();
                              $('h6.x-element').eq(0).trigger("click"); // 次の通知を選択する
+
+                             // 既読カウント
+                             count++;
+                             $('#x-counter').html(count);
                          });
                      });
 
@@ -120,12 +125,16 @@
             <nav class="bg-white" style="min-width: 524px; overflow-y: scroll; height: 100vh;">
                 <header class="bg-light px-3 py-0">
                     <!-- ヘッダーの内容 -->
-                    <h1 class="fs-2 text-primary fw-bold py-0">
-                        Garbanzo
-                    </h1>
-                    <ul class="navbar-nav d-flex flex-row">
-                        <!-- <li class="nav-item mx-3 text-muted active"><a href="#" class="nav-link text-secondary">Option</a></li> -->
-                    </ul>
+                    <div class="row">
+                        <h1 class="fs-2 text-primary fw-bold py-0 col-md-10">
+                            Garbanzo
+                        </h1>
+                        <ul class="navbar-nav d-flex flex-row col-md-2">
+                            <li class="nav-item mx-3 text-muted active">
+                                <span href="#" class="badge bg-secondary" id="x-counter">0</span>
+                            </li>
+                        </ul>
+                    </div>
                 </header>
                 <ul class="nav flex-column m-0 px-3 bg-light" id="messages">
                     <!-- <div class="card mb-1">
