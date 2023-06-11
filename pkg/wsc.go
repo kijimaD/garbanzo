@@ -10,8 +10,10 @@ import (
 type wsClient struct {
 	// socketはこのクライアントのためのWebSocket
 	socket *websocket.Conn
-	// sendはメッセージが送られるチャネル。WebSocketを通じてユーザのブラウザに送られるのを待機する
+	// sendはイベントが送られるチャネル。WebSocketを通じてユーザのブラウザに送られるのを待機する
 	send chan *Event
+	// 統計
+	stats chan *Stats
 	// roomはこのクライアントが参加している接続
 	room *room
 	// doneはクライアントに送信済みの通知IDを保持する
@@ -69,6 +71,16 @@ func (wsc *wsClient) write() {
 		wsc.mu.Lock()
 		wsc.done[send.NotificationID] = true
 		wsc.mu.Unlock()
+
+		// FIXME: sendがないと反映されない
+		select {
+		case stats := <-wsc.stats:
+			err := wsc.socket.WriteJSON(stats)
+			if err != nil {
+				break
+			}
+		default:
+		}
 	}
 	wsc.socket.Close()
 }

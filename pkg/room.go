@@ -27,7 +27,9 @@ type room struct {
 	// wsClientsには接続しているすべてのクライアントが保持される
 	wsClients map[*wsClient]bool
 	// 既読にしようとしている通知IDを保持するためのチャネル
-	markRead chan *mark
+	markRead   chan *mark
+	stats      chan *Stats
+	statsStore *Stats
 	// tracerは操作のログを受け取る
 	tracer trace.Tracer
 	events Events
@@ -36,15 +38,17 @@ type room struct {
 
 func newRoom() *room {
 	return &room{
-		fetch:     make(chan *Event),
-		forward:   make(chan *Event),
-		join:      make(chan *wsClient),
-		leave:     make(chan *wsClient),
-		wsClients: make(map[*wsClient]bool),
-		markRead:  make(chan *mark),
-		tracer:    trace.Off(), // デフォルトではログ出力はされない
-		events:    make(Events),
-		mu:        &sync.RWMutex{},
+		fetch:      make(chan *Event),
+		forward:    make(chan *Event),
+		join:       make(chan *wsClient),
+		leave:      make(chan *wsClient),
+		wsClients:  make(map[*wsClient]bool),
+		markRead:   make(chan *mark),
+		stats:      make(chan *Stats, 1), // 同じゴルーチン内で送信と受信をするため、容量ゼロだと止まってしまう
+		statsStore: newStats(0),
+		tracer:     trace.Off(), // デフォルトではログ出力はされない
+		events:     make(Events),
+		mu:         &sync.RWMutex{},
 	}
 }
 
@@ -114,6 +118,15 @@ func (r *room) run() {
 			err := r.markThreadRead(mark.ID)
 			if err != nil {
 				log.Println("mark thread read err:", err)
+			r.statsStore.ReadCount++
+			r.stats <- r.statsStore
+		case stats := <-r.stats:
+			fmt.Println("receive stats change!", stats)
+			for wsClient := range r.wsClients {
+				select {
+				case wsClient.stats <- stats:
+					r.tracer.Trace("send stats to client")
+				}
 			}
 			delete(r.events, mark.ID)
 			delete(proxyCache, mark.URL)
@@ -124,7 +137,7 @@ func (r *room) run() {
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
 				wsClient.mu.RLock()
-				exists := wsClient.done[forward.NotificationID]
+				_, exists := wsClient.done[forward.NotificationID]
 				wsClient.mu.RUnlock()
 				if exists {
 					continue
@@ -153,6 +166,7 @@ func (r *room) eventHandler(c echo.Context) error {
 	wsc := &wsClient{
 		socket: socket,
 		send:   make(chan *Event, messageBufferSize),
+		stats:  make(chan *Stats, messageBufferSize),
 		room:   r,
 		done:   make(map[string]bool),
 		mu:     &sync.RWMutex{},

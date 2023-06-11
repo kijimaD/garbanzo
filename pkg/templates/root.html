@@ -20,96 +20,100 @@
                  socket.onmessage = function(e) {
                      var msg = JSON.parse(e.data);
 
-                     // DOMを追加する
-                     messages.append(
-                         $("<div>").addClass("mb-1 text-start text-dark")
-                                   .attr("id", "x-notification-div-"+msg.NotificationID)
-                                   .css({maxWidth: 480})
-                                   .append(
-                                       $("<div>").addClass("container").append(
-                                           $("<img>").addClass("d-inline rounded-circle text-right")
-                                                     .css({
-                                                         width: 40,
-                                                         verticalAlign: "middle",
-                                                     })
-                                                     .attr("src", msg.AvatarURL),
-                                           $("<small>").text(msg.UserName)
-                                                       .addClass("me-2"),
-                                           $("<a>").text(msg.RepoName)
-                                                   .attr("href", msg.HTMLURL)
-                                                   .attr("target", "_blank")
-                                                   .addClass("text-muted small ms-2")
-                                                   .css({
-                                                       float: "right",
-                                                   }).append(
-                                                       $("<i>").addClass("bi bi-arrow-up-right")
-                                                   ),
-                                           $("<small>").text(msg.When)
-                                                       .addClass("text-muted")
+                     if (msg.NotificationID != undefined) {
+                         // DOMを追加する
+                         messages.append(
+                             $("<div>").addClass("mb-1 text-start text-dark")
+                                       .attr("id", "x-notification-div-"+msg.NotificationID)
+                                       .css({maxWidth: 480})
+                                       .append(
+                                           $("<div>").addClass("container").append(
+                                               $("<img>").addClass("d-inline rounded-circle text-right")
+                                                         .css({
+                                                             width: 40,
+                                                             verticalAlign: "middle",
+                                                         })
+                                                         .attr("src", msg.AvatarURL),
+                                               $("<small>").text(msg.UserName)
+                                                           .addClass("me-2"),
+                                               $("<a>").text(msg.RepoName)
+                                                       .attr("href", msg.HTMLURL)
+                                                       .attr("target", "_blank")
+                                                       .addClass("text-muted small ms-2")
                                                        .css({
                                                            float: "right",
-                                                       }),
-                                           $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary me-2")
-                                                      .css({
-                                                          float: "right",
-                                                      }),
-                                           $("<div>").addClass("row").append(
-                                               $("<div>").addClass("col-md-10 btn shadow-sm bg-body rounded")
-                                                         .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button")
-                                                         .append(
-                                                             $("<h6>").html(msg.TitleHTML)
-                                                                      .addClass("h6 fw-bold text-break  text-start")
-                                                                      .addClass("x-element"),
-                                                             $("<p>").text(msg.Body.substr(0, 100))
-                                                                     .addClass("text-break text-start"),
-                                                         ),
-                                               $("<div>").addClass("col-md-2").append(
-                                                   $("<button>").addClass("btn btn-light btn shadow-sm bg-body rounded bi bi-check-lg")
-                                                                .attr("id", "x-notification-mark-"+msg.NotificationID, "type", "button")
+                                                       }).append(
+                                                           $("<i>").addClass("bi bi-arrow-up-right")
+                                                       ),
+                                               $("<small>").text(msg.When)
+                                                           .addClass("text-muted")
+                                                           .css({
+                                                               float: "right",
+                                                           }),
+                                               $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary me-2")
+                                                          .css({
+                                                              float: "right",
+                                                          }),
+                                               $("<div>").addClass("row").append(
+                                                   $("<div>").addClass("col-md-10 btn shadow-sm bg-body rounded")
+                                                             .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button")
+                                                             .append(
+                                                                 $("<h6>").html(msg.TitleHTML)
+                                                                          .addClass("h6 fw-bold text-break  text-start")
+                                                                          .addClass("x-element"),
+                                                                 $("<p>").text(msg.Body.substr(0, 100))
+                                                                         .addClass("text-break text-start"),
+                                                             ),
+                                                   $("<div>").addClass("col-md-2").append(
+                                                       $("<button>").addClass("btn btn-light btn shadow-sm bg-body rounded bi bi-check-lg")
+                                                                    .attr("id", "x-notification-mark-"+msg.NotificationID, "type", "button")
+                                                   ),
                                                ),
-                                           ),
+                                           )
+                                           // $("<p>").html(msg.Body)
+                                           //         .addClass("nav-item mb-2 d-inline text-break"),
                                        )
-                                       // $("<p>").html(msg.Body)
-                                       //         .addClass("nav-item mb-2 d-inline text-break"),
-                                   )
 
-                     );
-
-                     $(document).ready(function() {
-                         // 各要素にクリックイベントのハンドラーを設定する
-                         // 切替ボタン
-                         $('#x-notification-link-'+msg.NotificationID).click(function() {
-                             var iframe = document.getElementById('x-iframe');
-                             iframe.src = msg.ProxyURL;
-                         });
-
-                         // 既読ボタン
-                         $('#x-notification-mark-'+msg.NotificationID).click(function() {
-                             if (!socket) {
-                                 alert("error: Close WebSocket");
-                             }
-                             socket.send(JSON.stringify({
-                                 "id": msg.NotificationID,
-                                 "url": msg.ProxyURL,
-                             }));
-                             $('#x-notification-div-'+msg.NotificationID).remove();
-                             $('h6.x-element').eq(0).trigger("click"); // 次の通知を選択する
-
-                             // 既読カウント
-                             count++;
-                             $('#x-counter').html(count);
-                         });
-                     });
-
-                     // プッシュ通知
-                     if (msg.IsNotifyBrowser) {
-                         Push.create(
-                             "[" + msg.Kind + "]" + msg.Title,
-                             {
-                                 body: msg.Body.substr(0, 100),
-                                 icon: msg.AvatarURL,
-                             }
                          );
+
+                         $(document).ready(function() {
+                             // 各要素にクリックイベントのハンドラーを設定する
+                             // 切替ボタン
+                             $('#x-notification-link-'+msg.NotificationID).click(function() {
+                                 var iframe = document.getElementById('x-iframe');
+                                 iframe.src = msg.ProxyURL;
+                             });
+
+                             // 既読ボタン
+                             $('#x-notification-mark-'+msg.NotificationID).click(function() {
+                                 if (!socket) {
+                                     alert("error: Close WebSocket");
+                                 }
+                                 socket.send(JSON.stringify({
+                                     "id": msg.NotificationID,
+                                     "url": msg.ProxyURL,
+                                 }));
+                                 $('#x-notification-div-'+msg.NotificationID).remove();
+                                 $('h6.x-element').eq(0).trigger("click"); // 次の通知を選択する
+                             });
+                         });
+
+                         // プッシュ通知
+                         if (msg.IsNotifyBrowser) {
+                             Push.create(
+                                 "[" + msg.Kind + "]" + msg.Title,
+                                 {
+                                     body: msg.Body.substr(0, 100),
+                                     icon: msg.AvatarURL,
+                                 }
+                             );
+                         }
+                     }
+
+                     // 既読カウント
+                     if (msg.ReadCount != undefined) {
+                         $('#x-counter').html(msg.ReadCount);
+                     console.log(msg.ReadCount);
                      }
                  }
              }
