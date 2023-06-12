@@ -7,104 +7,114 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/push.js/1.0.12/push.min.js" integrity="sha512-DjIQO7OxE8rKQrBLpVCk60Zu0mcFfNx2nVduB96yk5HS/poYZAkYu5fxpwXj3iet91Ezqq2TNN6cJh9Y5NtfWg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script>
          $(function() {
+             var count = 0; // 既読数
              var socket = null;
              var messages = $("#messages");
              if (!window["WebSocket"]) {
                  alert("Error: This browser not support WebSocket")
              } else {
-                 socket = new WebSocket("ws://{{.Host}}/ws"); /* r.Hostのこと。rはecho.Request() */
+                 socket = new WebSocket("ws://{{.Host}}/events"); /* r.Hostのこと。rはecho.Request() */
                  socket.onclose = function() {
                      alert("close connection");
                  }
                  socket.onmessage = function(e) {
                      var msg = JSON.parse(e.data);
 
-                     // DOMを追加する
-                     messages.append(
-                         $("<div>").addClass("mb-1 text-start text-dark")
-                                   .attr("id", "x-notification-div-"+msg.NotificationID)
-                                   .css({maxWidth: 480})
-                                   .append(
-                                       $("<div>").addClass("container").append(
-                                           $("<img>").addClass("d-inline rounded-circle text-right")
-                                                     .css({
-                                                         width: 40,
-                                                         verticalAlign: "middle",
-                                                     })
-                                                     .attr("src", msg.AvatarURL),
-                                           $("<small>").text(msg.UserName)
-                                                       .addClass("me-2"),
-                                           $("<a>").text(msg.RepoName)
-                                                   .attr("href", msg.HTMLURL)
-                                                   .attr("target", "_blank")
-                                                   .addClass("text-muted small ms-2")
-                                                   .css({
-                                                       float: "right",
-                                                   }).append(
-                                                       $("<i>").addClass("bi bi-arrow-up-right")
-                                                   ),
-                                           $("<small>").text(msg.When)
-                                                       .addClass("text-muted")
+                     if (msg.NotificationID != undefined) {
+                         // DOMを追加する
+                         messages.append(
+                             $("<div>").addClass("mb-1 text-start text-dark")
+                                       .attr("id", "x-notification-div-"+msg.NotificationID)
+                                       .css({maxWidth: 480})
+                                       .append(
+                                           $("<div>").addClass("container").append(
+                                               $("<img>").addClass("d-inline rounded-circle text-right")
+                                                         .css({
+                                                             width: 40,
+                                                             verticalAlign: "middle",
+                                                         })
+                                                         .attr("src", msg.AvatarURL),
+                                               $("<small>").text(msg.UserName)
+                                                           .addClass("me-2"),
+                                               $("<a>").text(msg.RepoName)
+                                                       .attr("href", msg.HTMLURL)
+                                                       .attr("target", "_blank")
+                                                       .addClass("text-muted small ms-2")
                                                        .css({
                                                            float: "right",
-                                                       }),
-                                           $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary me-2")
-                                                      .css({
-                                                          float: "right",
-                                                      }),
-                                           $("<div>").addClass("row").append(
-                                               $("<div>").addClass("col-md-10 btn shadow-sm bg-body rounded")
-                                                         .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button")
-                                                         .append(
-                                                             $("<h6>").html(msg.TitleHTML)
-                                                                      .addClass("h6 fw-bold text-break  text-start")
-                                                                      .addClass("x-element"),
-                                                             $("<p>").text(msg.Body.substr(0, 100))
-                                                                     .addClass("text-break text-start"),
-                                                         ),
-                                               $("<div>").addClass("col-md-2").append(
-                                                   $("<button>").addClass("btn btn-light btn shadow-sm bg-body rounded bi bi-check-lg")
-                                                                .attr("id", "x-notification-mark-"+msg.NotificationID, "type", "button")
+                                                       }).append(
+                                                           $("<i>").addClass("bi bi-arrow-up-right")
+                                                       ),
+                                               $("<small>").text(msg.When)
+                                                           .addClass("text-muted")
+                                                           .css({
+                                                               float: "right",
+                                                           }),
+                                               $("<span>").text(msg.Kind)                                                                                        .addClass("badge rounded-pill border border-primary text-primary me-2")
+                                                          .css({
+                                                              float: "right",
+                                                          }),
+                                               $("<div>").addClass("row").append(
+                                                   $("<div>").addClass("col-md-10 btn shadow-sm bg-body rounded")
+                                                             .attr("id", "x-notification-link-"+msg.NotificationID, "type", "button")
+                                                             .append(
+                                                                 $("<h6>").html(msg.TitleHTML)
+                                                                          .addClass("h6 fw-bold text-break  text-start")
+                                                                          .addClass("x-element"),
+                                                                 $("<p>").text(msg.Body.substr(0, 100))
+                                                                         .addClass("text-break text-start"),
+                                                             ),
+                                                   $("<div>").addClass("col-md-2").append(
+                                                       $("<button>").addClass("btn btn-light btn shadow-sm bg-body rounded bi bi-check-lg")
+                                                                    .attr("id", "x-notification-mark-"+msg.NotificationID, "type", "button")
+                                                   ),
                                                ),
-                                           ),
+                                           )
+                                           // $("<p>").html(msg.Body)
+                                           //         .addClass("nav-item mb-2 d-inline text-break"),
                                        )
-                                       // $("<p>").html(msg.Body)
-                                       //         .addClass("nav-item mb-2 d-inline text-break"),
-                                   )
 
-                     );
-
-                     $(document).ready(function() {
-                         // 各要素にクリックイベントのハンドラーを設定する
-                         // 切替ボタン
-                         $('#x-notification-link-'+msg.NotificationID).click(function() {
-                             var iframe = document.getElementById('x-iframe');
-                             iframe.src = msg.ProxyURL;
-                         });
-
-                         // 既読ボタン
-                         $('#x-notification-mark-'+msg.NotificationID).click(function() {
-                             if (!socket) {
-                                 alert("error: Close WebSocket");
-                             }
-                             socket.send(JSON.stringify({
-                                 "id": msg.NotificationID,
-                                 "url": msg.ProxyURL,
-                             }));
-                             $('#x-notification-div-'+msg.NotificationID).remove();
-                             $('h6.x-element').eq(0).trigger("click"); // 次の通知を選択する
-                         });
-                     });
-
-                     // プッシュ通知
-                     if (msg.IsNotifyBrowser) {
-                         Push.create(
-                             "[" + msg.Kind + "]" + msg.Title,
-                             {
-                                 body: msg.Body.substr(0, 100),
-                                 icon: msg.AvatarURL,
-                             }
                          );
+
+                         $(document).ready(function() {
+                             // 各要素にクリックイベントのハンドラーを設定する
+                             // 切替ボタン
+                             $('#x-notification-link-'+msg.NotificationID).click(function() {
+                                 var iframe = document.getElementById('x-iframe');
+                                 iframe.src = msg.ProxyURL;
+                             });
+
+                             // 既読ボタン
+                             $('#x-notification-mark-'+msg.NotificationID).click(function() {
+                                 if (!socket) {
+                                     alert("error: Close WebSocket");
+                                 }
+                                 socket.send(JSON.stringify({
+                                     "id": msg.NotificationID,
+                                     "url": msg.ProxyURL,
+                                 }));
+                                 $('#x-notification-div-'+msg.NotificationID).remove();
+                                 $('h6.x-element').eq(0).trigger("click"); // 次の通知を選択する
+                             });
+                         });
+
+                         // プッシュ通知
+                         if (msg.IsNotifyBrowser) {
+                             Push.create(
+                                 "[" + msg.Kind + "]" + msg.Title,
+                                 {
+                                     body: msg.Body.substr(0, 100),
+                                     icon: msg.AvatarURL,
+                                 }
+                             );
+                         }
+                     }
+
+                     // 既読カウント
+                     if (msg.ReadCount != undefined) {
+                         $('#x-read-counter').html(msg.ReadCount);
+                         $('#x-event-counter').html(msg.EventCount);
+                         $('#x-cache-counter').html(msg.CacheCount);
                      }
                  }
              }
@@ -116,18 +126,27 @@
     </head>
     <body class="h-100">
         <div class="d-flex flex-row">
-            <!-- サイドメニュー -->
-            <nav class="bg-white" style="min-width: 524px; overflow-y: scroll; height: 100vh;">
-                <header class="bg-light px-3 py-0">
+            <!-- サイドメニュー1 -->
+            <nav class="bg-white" style="min-width: 140px;">
+                <ul class="nav flex-column m-0 px-0">
+                    <li class="nav-item mx-3 text-muted active">
+                        <p>read: <span href="#" class="badge bg-secondary" id="x-read-counter">0</span></p>
+                        <p>event: <span href="#" class="badge bg-secondary" id="x-event-counter">0</span></p>
+                        <p>cache: <span href="#" class="badge bg-secondary" id="x-cache-counter">0</span></p>
+                    </li>
+                </ul>
+            </nav>
+            <!-- サイドメニュー2 -->
+            <nav class="bg-light" style="min-width: 524px; overflow-y: scroll; height: 100vh;">
+                <header class="px-3 py-0">
                     <!-- ヘッダーの内容 -->
-                    <h1 class="fs-2 text-primary fw-bold py-0">
-                        Garbanzo
-                    </h1>
-                    <ul class="navbar-nav d-flex flex-row">
-                        <!-- <li class="nav-item mx-3 text-muted active"><a href="#" class="nav-link text-secondary">Option</a></li> -->
-                    </ul>
+                    <div class="row">
+                        <h1 class="fs-2 text-primary fw-bold py-0 col-md-10">
+                            Garbanzo
+                        </h1>
+                    </div>
                 </header>
-                <ul class="nav flex-column m-0 px-3 bg-light" id="messages">
+                <ul class="nav flex-column m-0 px-3" id="messages">
                     <!-- <div class="card mb-1">
                          <div class="container">
                          <img class="d-inline" src="https://lh3.googleusercontent.com/a/AAcHTtf_TLUT_68kee2kIQdnaqgDNsS6R-NfwLjnGVsPwg=s96-c" style="width: 50px; vertical-align: middle;">

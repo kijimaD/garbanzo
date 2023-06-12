@@ -2,7 +2,6 @@ package garbanzo
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -27,7 +26,9 @@ type room struct {
 	// wsClientsには接続しているすべてのクライアントが保持される
 	wsClients map[*wsClient]bool
 	// 既読にしようとしている通知IDを保持するためのチャネル
-	markRead chan *mark
+	markRead   chan *mark
+	stats      chan *Stats
+	statsStore *Stats
 	// tracerは操作のログを受け取る
 	tracer trace.Tracer
 	events Events
@@ -36,15 +37,17 @@ type room struct {
 
 func newRoom() *room {
 	return &room{
-		fetch:     make(chan *Event),
-		forward:   make(chan *Event),
-		join:      make(chan *wsClient),
-		leave:     make(chan *wsClient),
-		wsClients: make(map[*wsClient]bool),
-		markRead:  make(chan *mark),
-		tracer:    trace.Off(), // デフォルトではログ出力はされない
-		events:    make(Events),
-		mu:        &sync.RWMutex{},
+		fetch:      make(chan *Event),
+		forward:    make(chan *Event),
+		join:       make(chan *wsClient),
+		leave:      make(chan *wsClient),
+		wsClients:  make(map[*wsClient]bool),
+		markRead:   make(chan *mark),
+		stats:      make(chan *Stats, 1), // 同じゴルーチン内で送信と受信をするため、容量ゼロだと止まってしまう
+		statsStore: newStats(),
+		tracer:     trace.Off(), // デフォルトではログ出力はされない
+		events:     make(Events),
+		mu:         &sync.RWMutex{},
 	}
 }
 
@@ -63,6 +66,8 @@ func (r *room) run() {
 		defer t1.Stop()
 		t2 := time.NewTicker(30 * time.Second)
 		defer t2.Stop()
+		t3 := time.NewTicker(2 * time.Second)
+		defer t3.Stop()
 		for {
 			select {
 			case <-t1.C:
@@ -95,6 +100,16 @@ func (r *room) run() {
 						log.Println(err)
 					}
 				}()
+			case <-t3.C:
+				go func() {
+					r.mu.RLock()
+					r.statsStore.EventCount = len(r.events)
+					r.mu.RUnlock()
+
+					proxyMutex.RLock()
+					r.statsStore.CacheCount = len(proxyCache)
+					proxyMutex.RUnlock()
+				}()
 			}
 		}
 	}()
@@ -117,14 +132,24 @@ func (r *room) run() {
 			}
 			delete(r.events, mark.ID)
 			delete(proxyCache, mark.URL)
+			r.statsStore.ReadCount++
+			r.stats <- r.statsStore
+		case stats := <-r.stats:
+			for wsClient := range r.wsClients {
+				select {
+				case wsClient.stats <- stats:
+					r.tracer.Trace("send stats to client")
+				}
+			}
 		case fetch := <-r.fetch:
 			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch
 			r.mu.Unlock()
+			r.stats <- r.statsStore
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
 				wsClient.mu.RLock()
-				exists := wsClient.done[forward.NotificationID]
+				_, exists := wsClient.done[forward.NotificationID]
 				wsClient.mu.RUnlock()
 				if exists {
 					continue
@@ -143,7 +168,7 @@ func (r *room) run() {
 	}
 }
 
-func (r *room) handleWebSocket(c echo.Context) error {
+func (r *room) eventHandler(c echo.Context) error {
 	socket, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		log.Fatal("ServeHTTP:", err)
@@ -153,14 +178,16 @@ func (r *room) handleWebSocket(c echo.Context) error {
 	wsc := &wsClient{
 		socket: socket,
 		send:   make(chan *Event, messageBufferSize),
+		stats:  make(chan *Stats, messageBufferSize),
 		room:   r,
 		done:   make(map[string]bool),
 		mu:     &sync.RWMutex{},
 	}
 
 	r.join <- wsc
+	r.stats <- r.statsStore
 	defer func() { r.leave <- wsc }()
-	go wsc.write() // c.sendの内容をwebsocketに書き込む
+	go wsc.write() // websocketに書き込む
 	wsc.read()     // このメソッドの中の無限ループによって接続は保持され、終了を指示されるまで他の処理をブロックする
 	return nil
 }
@@ -175,7 +202,6 @@ func (r *room) fetchEvent() error {
 	if err != nil {
 		return err
 	}
-	fmt.Print("e")
 	return nil
 }
 
@@ -207,7 +233,6 @@ func (r *room) fetchCache() error {
 		proxyMutex.Unlock()
 
 		time.Sleep(time.Second * 1)
-		fmt.Print("c")
 	}
 	return nil
 }

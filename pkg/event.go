@@ -41,3 +41,17 @@ func newEvent(notificationID string, userName string, avatarURL string, title st
 		IsNotifyBrowser: false,
 	}
 }
+
+type Stats struct {
+	ReadCount  int
+	EventCount int
+	CacheCount int
+}
+
+func newStats() *Stats {
+	return &Stats{
+		ReadCount:  0,
+		EventCount: 0,
+		CacheCount: 0,
+	}
+}
