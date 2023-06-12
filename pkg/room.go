@@ -133,8 +133,15 @@ func (r *room) run() {
 			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch
 			r.mu.Unlock()
+
+			r.mu.RLock()
 			r.statsStore.EventCount = len(r.events)
+			r.mu.RUnlock()
+
+			proxyMutex.RLock()
 			r.statsStore.CacheCount = len(proxyCache)
+			proxyMutex.RUnlock()
+
 			r.stats <- r.statsStore
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
