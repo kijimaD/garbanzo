@@ -66,6 +66,8 @@ func (r *room) run() {
 		defer t1.Stop()
 		t2 := time.NewTicker(30 * time.Second)
 		defer t2.Stop()
+		t3 := time.NewTicker(2 * time.Second)
+		defer t3.Stop()
 		for {
 			select {
 			case <-t1.C:
@@ -97,6 +99,16 @@ func (r *room) run() {
 					if err != nil {
 						log.Println(err)
 					}
+				}()
+			case <-t3.C:
+				go func() {
+					r.mu.RLock()
+					r.statsStore.EventCount = len(r.events)
+					r.mu.RUnlock()
+
+					proxyMutex.RLock()
+					r.statsStore.CacheCount = len(proxyCache)
+					proxyMutex.RUnlock()
 				}()
 			}
 		}
@@ -133,15 +145,6 @@ func (r *room) run() {
 			r.mu.Lock()
 			r.events[fetch.NotificationID] = fetch
 			r.mu.Unlock()
-
-			r.mu.RLock()
-			r.statsStore.EventCount = len(r.events)
-			r.mu.RUnlock()
-
-			proxyMutex.RLock()
-			r.statsStore.CacheCount = len(proxyCache)
-			proxyMutex.RUnlock()
-
 			r.stats <- r.statsStore
 		case forward := <-r.forward:
 			for wsClient := range r.wsClients {
