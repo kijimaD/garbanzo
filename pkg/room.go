@@ -126,10 +126,13 @@ func (r *room) run() {
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
 		case mark := <-r.markRead:
-			err := r.markThreadRead(mark.ID)
-			if err != nil {
-				log.Println("mark thread read err:", err)
-			}
+			// markは時間のかかる処理なので、並行処理にしないと高速で複数送られたときチャンネルがブロックされる
+			go func() {
+				err := r.markThreadRead(mark.ID)
+				if err != nil {
+					log.Println("mark thread read err:", err)
+				}
+			}()
 			delete(r.events, mark.ID)
 			delete(proxyCache, mark.URL)
 			r.statsStore.ReadCount++

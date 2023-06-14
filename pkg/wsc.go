@@ -48,11 +48,14 @@ const notifyMinutesAgo = 60
 func (wsc *wsClient) write() {
 	go func() {
 		for stats := range wsc.stats {
+			wsc.mu.Lock()
 			err := wsc.socket.WriteJSON(stats)
+			wsc.mu.Unlock()
 			if err != nil {
 				break
 			}
 		}
+		wsc.socket.Close()
 	}()
 
 	go func() {
@@ -74,7 +77,9 @@ func (wsc *wsClient) write() {
 				send.IsNotifyBrowser = true
 			}
 
+			wsc.mu.Lock()
 			err := wsc.socket.WriteJSON(send)
+			wsc.mu.Unlock()
 			if err != nil {
 				break
 			}
