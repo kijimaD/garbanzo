@@ -6,12 +6,14 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/kijimaD/garbanzo/trace"
 	"github.com/labstack/echo/v4"
+	"github.com/mmcdole/gofeed"
 )
 
 type room struct {
@@ -96,6 +98,12 @@ func (r *room) run() {
 					r.fetchEvent()
 
 					err := r.fetchCache()
+					if err != nil {
+						log.Println(err)
+					}
+				}()
+				go func() {
+					err := r.getFeeds()
 					if err != nil {
 						log.Println(err)
 					}
@@ -236,6 +244,36 @@ func (r *room) fetchCache() error {
 		proxyMutex.Unlock()
 
 		time.Sleep(time.Second * 1)
+	}
+	return nil
+}
+
+func (r *room) getFeeds() error {
+	fp := gofeed.NewParser()
+	feed, err := fp.ParseURL("https://qiita.com/tags/go/feed")
+	if err != nil {
+		return err
+	}
+	for _, f := range feed.Items {
+		unix := time.Now().Unix()
+		proxyLink, _ := genProxyURL(f.Link)
+		event := newEvent(
+			strconv.FormatInt(unix, 10),
+			f.Author.Name,
+			"", // avatar URL
+			f.Title,
+			f.Title,
+			f.Description,
+			f.Description,
+			f.Link,
+			proxyLink,
+			"site name",
+			genTimeWithTZ(f.UpdatedParsed),
+			"category",
+			*f.UpdatedParsed,
+		)
+		r.fetch <- event
+		time.Sleep(1 * time.Second)
 	}
 	return nil
 }
