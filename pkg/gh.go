@@ -398,9 +398,9 @@ func genProxyURL(u string) (string, error) {
 	}
 	var proxyURL string
 	if h.Fragment == "" {
-		proxyURL = PROXY_BASE + h.Path
+		proxyURL = PROXY_BASE + h.Path + "?origin=" + h.Host
 	} else {
-		proxyURL = PROXY_BASE + h.Path + "#" + h.Fragment
+		proxyURL = PROXY_BASE + h.Path + "?origin=" + h.Host + "#" + h.Fragment
 	}
 
 	return proxyURL, nil

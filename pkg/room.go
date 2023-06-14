@@ -35,6 +35,7 @@ type room struct {
 	tracer trace.Tracer
 	events Events
 	mu     *sync.RWMutex
+	feeds  map[string]bool
 }
 
 func newRoom() *room {
@@ -50,6 +51,7 @@ func newRoom() *room {
 		tracer:     trace.Off(), // デフォルトではログ出力はされない
 		events:     make(Events),
 		mu:         &sync.RWMutex{},
+		feeds:      make(map[string]bool),
 	}
 }
 
@@ -255,6 +257,10 @@ func (r *room) getFeeds() error {
 		return err
 	}
 	for _, f := range feed.Items {
+		_, exists := r.feeds[f.Link]
+		if exists {
+			continue
+		}
 		unix := time.Now().Unix()
 		proxyLink, _ := genProxyURL(f.Link)
 		event := newEvent(
@@ -273,7 +279,8 @@ func (r *room) getFeeds() error {
 			*f.UpdatedParsed,
 		)
 		r.fetch <- event
-		time.Sleep(1 * time.Second)
+		r.feeds[f.Link] = true
+		time.Sleep(2 * time.Second)
 	}
 	return nil
 }

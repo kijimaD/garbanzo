@@ -58,7 +58,7 @@ func TestGHHandler(t *testing.T) {
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
 
-	req, _ := http.NewRequest("GET", testServer.URL+"/kijimaD", nil)
+	req, _ := http.NewRequest("GET", testServer.URL+"/kijimaD?origin=github.com", nil)
 
 	client := new(http.Client)
 	resp, _ := client.Do(req)

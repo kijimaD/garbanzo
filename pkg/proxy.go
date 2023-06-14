@@ -3,7 +3,9 @@ package garbanzo
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"net/url"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -32,7 +34,16 @@ var proxyMutex = &sync.RWMutex{}
 
 func ghHandler(c echo.Context) error {
 	path := c.Request().URL.String()
-	url := "https://github.com" + path
+	h, err := url.Parse(path)
+	if err != nil {
+		return err
+	}
+	originHost := h.Query()["origin"]
+	if len(originHost) != 1 {
+		log.Println("not exists origin host:", path)
+		return nil
+	}
+	url := "https://" + originHost[0] + path
 
 	// load cache
 	proxyMutex.RLock()

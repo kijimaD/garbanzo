@@ -31,6 +31,16 @@ func TestGetNotificationsDup(t *testing.T) {
 	assert.Equal(t, count, len(gh.notifications))
 }
 
+func TestGenProxyURL(t *testing.T) {
+	url, _ := genProxyURL("https://github.com/golang/go/issues/10000")
+	assert.Equal(t, "http://localhost:8081/golang/go/issues/10000?origin=github.com", url)
+}
+
+func TestGenProxyURLFragment(t *testing.T) {
+	url, _ := genProxyURL("https://github.com/golang/go/issues/100#fragment")
+	assert.Equal(t, "http://localhost:8081/golang/go/issues/100?origin=github.com#fragment", url)
+}
+
 // FIXME: チャネル待ちになって実行が終わらない。どうやってテストすればいいのだろう
 // func TestProcess(t *testing.T) {
 // 	gh := newGitHub()
