@@ -3,7 +3,6 @@ package garbanzo
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -33,32 +32,34 @@ var proxyCache = make(map[string]string)
 var proxyMutex = &sync.RWMutex{}
 
 func ghHandler(c echo.Context) error {
-	path := c.Request().URL.String()
-	h, err := url.Parse(path)
+	var u string
+	reqpath := c.Request().URL.String()
+	h, err := url.Parse(reqpath)
 	if err != nil {
 		return err
 	}
 	originHost := h.Query()["origin"]
-	if len(originHost) != 1 {
-		log.Println("not exists origin host:", path)
-		return nil
+	if len(originHost) == 1 {
+		u = "https://" + originHost[0] + reqpath
+	} else {
+		// FIXME: iframe内で開くのが相対リンクの場合、暗黙的にホストがlocalshostになる。ホストがわからないから、元のページを開けない。とりあえずgithub.comにしておく...
+		u = "https://github.com" + reqpath
 	}
-	url := "https://" + originHost[0] + path
 
 	// load cache
 	proxyMutex.RLock()
-	val, ok := proxyCache[url]
+	val, ok := proxyCache[u]
 	proxyMutex.RUnlock()
 	if ok {
 		return c.HTML(http.StatusOK, val)
 	}
-	resp, _ := http.Get(url)
+	resp, _ := http.Get(u)
 	defer resp.Body.Close()
 
 	byteArray, _ := ioutil.ReadAll(resp.Body)
 	// save cache
 	proxyMutex.Lock()
-	proxyCache[url] = string(byteArray)
+	proxyCache[u] = string(byteArray)
 	proxyMutex.Unlock()
 	return c.HTML(http.StatusOK, string(byteArray))
 }
