@@ -252,6 +252,7 @@ func (r *room) fetchCache() error {
 
 func (r *room) getFeeds() error {
 	fp := gofeed.NewParser()
+	// TODO: URLを別から取ってこれるようにする
 	feed, err := fp.ParseURL("https://qiita.com/tags/go/feed")
 	if err != nil {
 		return err
@@ -269,8 +270,8 @@ func (r *room) getFeeds() error {
 			"", // avatar URL
 			f.Title,
 			f.Title,
-			f.Description,
-			f.Description,
+			f.Content,
+			f.Content,
 			f.Link,
 			proxyLink,
 			"site name",
