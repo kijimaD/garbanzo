@@ -28,6 +28,7 @@ func (c *Config) putConfDir() {
 	}
 }
 
+// 既読ファイルに書き込む
 func (c *Config) markToFile(url string) {
 	if _, err := os.Stat(c.saveFilePath()); errors.Is(err, os.ErrNotExist) {
 		f, err := os.Create(c.saveFilePath())
@@ -37,8 +38,8 @@ func (c *Config) markToFile(url string) {
 		}
 
 		writer := csv.NewWriter(f)
-		writer.Write([]string{"url"})
-		writer.Flush() // Writeだと内部バッファに書き込まれるだけ
+		writer.Write([]string{"url"}) // ヘッダー
+		writer.Flush()                // Writeだと内部バッファに書き込まれるだけ
 	}
 
 	file, err := os.OpenFile(c.saveFilePath(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
@@ -53,6 +54,7 @@ func (c *Config) markToFile(url string) {
 	writer.Write([]string{url})
 }
 
+// ファイルにURLが存在すれば既読状態としてtrueを返す
 func (c *Config) isMarked(url string) bool {
 	file, err := os.Open(c.saveFilePath())
 	if err != nil {

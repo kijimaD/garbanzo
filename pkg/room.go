@@ -270,7 +270,9 @@ func (r *room) getFeeds() error {
 		if exists {
 			continue
 		}
-
+		if r.config.isMarked(f.Link) {
+			continue
+		}
 		unix := time.Now().Unix()
 		var updated time.Time
 		if f.UpdatedParsed != nil {
