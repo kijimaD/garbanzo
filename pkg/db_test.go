@@ -53,18 +53,11 @@ func TestPutDir(t *testing.T) {
 	defer os.RemoveAll(".garbanzo")
 }
 
-func TestMarkToFile(t *testing.T) {
-	c := NewConfig(".")
-	c.putConfDir()
-	c.markToFile("http://example.com")
-	defer os.RemoveAll(".garbanzo")
-}
-
 func TestIsMark(t *testing.T) {
 	c := NewConfig(".")
 	c.putConfDir()
-	c.markToFile("http://example.com")
+	c.markToFile("http://ismark-example.com")
 	assert.Equal(t, false, c.isMarked("NOT_EXISTS"))
-	assert.Equal(t, true, c.isMarked("http://example.com"))
+	assert.Equal(t, true, c.isMarked("http://ismark-example.com"))
 	defer os.RemoveAll(".garbanzo")
 }

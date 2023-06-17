@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
 )
 
 const APPDIR = ".garbanzo"
@@ -21,18 +20,17 @@ func (c *Config) putConfDir() {
 	}
 	fileMode := fileInfo.Mode()
 	unixPerms := fileMode & os.ModePerm
-	path := filepath.Join(c.baseDir, APPDIR)
 
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		if err := os.Mkdir(path, unixPerms); err != nil {
+	if _, err := os.Stat(c.appDirPath()); errors.Is(err, os.ErrNotExist) {
+		if err := os.Mkdir(c.appDirPath(), unixPerms); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
 func (c *Config) markToFile(url string) {
-	if _, err := os.Stat("./.garbanzo/mark.csv"); errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create("./.garbanzo/mark.csv")
+	if _, err := os.Stat(c.saveFilePath()); errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(c.saveFilePath())
 		defer f.Close()
 		if err != nil {
 			log.Fatal(err)
@@ -43,7 +41,7 @@ func (c *Config) markToFile(url string) {
 		writer.Flush() // Writeだと内部バッファに書き込まれるだけ
 	}
 
-	file, err := os.OpenFile("./.garbanzo/mark.csv", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	file, err := os.OpenFile(c.saveFilePath(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +54,7 @@ func (c *Config) markToFile(url string) {
 }
 
 func (c *Config) isMarked(url string) bool {
-	file, err := os.Open("./.garbanzo/mark.csv")
+	file, err := os.Open(c.saveFilePath())
 	if err != nil {
 		log.Fatal(err)
 	}
