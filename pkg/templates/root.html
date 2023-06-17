@@ -90,8 +90,10 @@
                                      alert("error: Close WebSocket");
                                  }
                                  socket.send(JSON.stringify({
+                                     "source": msg.Source,
                                      "id": msg.NotificationID,
-                                     "url": msg.ProxyURL,
+                                     "htmlURL": msg.HTMLURL,
+                                     "proxyURL": msg.ProxyURL,
                                  }));
                                  $('#x-notification-div-'+msg.NotificationID).remove();
                                  $('h6.x-element').eq(0).trigger("click"); // 次の通知を選択する

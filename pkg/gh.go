@@ -206,6 +206,7 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 	htmlTitle := mdToHTML([]byte(*pull.Title))
 
 	event := newEvent(
+		GitHubNotification,
 		*n.ID,
 		*pull.User.Login,
 		*pull.User.AvatarURL,
@@ -254,6 +255,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 	htmlTitle := mdToHTML([]byte(*issue.Title))
 
 	event := newEvent(
+		GitHubNotification,
 		*n.ID,
 		*issue.User.Login,
 		*issue.User.AvatarURL,
@@ -306,6 +308,7 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 	htmlTitle := mdToHTML([]byte(*n.Subject.Title))
 
 	event := newEvent(
+		GitHubNotification,
 		*n.ID,
 		*comment.User.Login,
 		*comment.User.AvatarURL,
@@ -358,6 +361,7 @@ func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
 	htmlTitle := mdToHTML([]byte(*n.Subject.Title))
 
 	event := newEvent(
+		GitHubNotification,
 		*n.ID,
 		*n.Repository.Owner.Login,     // リリースにはユーザがないのでとりあえずownerを設定する
 		*n.Repository.Owner.AvatarURL, // リリースにはユーザがないのでとりあえずownerを設定する

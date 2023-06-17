@@ -36,6 +36,7 @@ type room struct {
 	events Events
 	mu     *sync.RWMutex
 	feeds  map[string]bool
+	config *Config
 }
 
 func newRoom() *room {
@@ -52,6 +53,7 @@ func newRoom() *room {
 		events:     make(Events),
 		mu:         &sync.RWMutex{},
 		feeds:      make(map[string]bool),
+		config:     &Config{},
 	}
 }
 
@@ -138,13 +140,19 @@ func (r *room) run() {
 		case mark := <-r.markRead:
 			// markは時間のかかる処理なので、並行処理にしないと高速で複数送られたときチャンネルがブロックされる
 			go func() {
-				err := r.markThreadRead(mark.ID)
-				if err != nil {
-					log.Println("mark thread read err:", err)
+				if mark.Source == GitHubNotification {
+					// GitHub
+					err := r.markThreadRead(mark.ID)
+					if err != nil {
+						log.Println("mark thread read err:", err)
+					}
+				} else if mark.Source == Feed {
+					// feed
+					r.config.markToFile(mark.HTMLURL)
 				}
 			}()
 			delete(r.events, mark.ID)
-			delete(proxyCache, mark.URL)
+			delete(proxyCache, mark.ProxyURL)
 			r.statsStore.ReadCount++
 			r.stats <- r.statsStore
 		case stats := <-r.stats:
@@ -253,7 +261,7 @@ func (r *room) fetchCache() error {
 func (r *room) getFeeds() error {
 	fp := gofeed.NewParser()
 	// TODO: URLを別から取ってこれるようにする
-	feed, err := fp.ParseURL("https://qiita.com/tags/go/feed")
+	feed, err := fp.ParseURL("https://www.rfc-editor.org/rfcrss.xml")
 	if err != nil {
 		return err
 	}
@@ -262,11 +270,26 @@ func (r *room) getFeeds() error {
 		if exists {
 			continue
 		}
+
 		unix := time.Now().Unix()
+		var updated time.Time
+		if f.UpdatedParsed != nil {
+			updated = *f.UpdatedParsed
+		} else {
+			updated = time.Now()
+		}
+		var authorName string
+		if f.Author != nil {
+			authorName = f.Author.Name
+		} else {
+			authorName = ""
+		}
+
 		proxyLink, _ := genProxyURL(f.Link)
 		event := newEvent(
+			Feed,
 			strconv.FormatInt(unix, 10),
-			f.Author.Name,
+			authorName,
 			"", // avatar URL
 			f.Title,
 			f.Title,
@@ -275,9 +298,9 @@ func (r *room) getFeeds() error {
 			f.Link,
 			proxyLink,
 			"site name",
-			genTimeWithTZ(f.UpdatedParsed),
+			genTimeWithTZ(&updated),
 			"category",
-			*f.UpdatedParsed,
+			updated,
 		)
 		r.fetch <- event
 		r.feeds[f.Link] = true

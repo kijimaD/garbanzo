@@ -1,6 +1,7 @@
 package garbanzo
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -22,21 +23,24 @@ type wsClient struct {
 }
 
 type mark struct {
-	ID  string
-	URL string // proxy URL
+	Source   sourceType
+	ID       string
+	HTMLURL  string
+	ProxyURL string
 }
 
 // 無限ループでwebsocketを受信し続ける
 func (wsc *wsClient) read() {
 	for {
 		var m *mark
-		if err := wsc.socket.ReadJSON(&m); err == nil {
-			wsc.room.markRead <- m
-		} else {
+		err := wsc.socket.ReadJSON(&m)
+		if err != nil {
 			// 読み込めないと終了
 			// このループを抜けるとハンドラの実行が終了する。deferによってleaveチャンネルに送られ、送信対象から外される
+			log.Println(err)
 			break
 		}
+		wsc.room.markRead <- m
 	}
 	wsc.socket.Close()
 }

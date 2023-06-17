@@ -33,7 +33,7 @@ func (c *Config) markToFile(url string) {
 		f, err := os.Create(c.saveFilePath())
 		defer f.Close()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 		writer := csv.NewWriter(f)
@@ -43,7 +43,7 @@ func (c *Config) markToFile(url string) {
 
 	file, err := os.OpenFile(c.saveFilePath(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	defer file.Close()
 
@@ -56,7 +56,7 @@ func (c *Config) markToFile(url string) {
 func (c *Config) isMarked(url string) bool {
 	file, err := os.Open(c.saveFilePath())
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	defer file.Close()
 
@@ -78,5 +78,3 @@ func (c *Config) isMarked(url string) bool {
 	}
 	return exists
 }
-
-// homedir, _ := os.UserHomeDir()
