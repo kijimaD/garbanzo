@@ -7,17 +7,21 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 )
 
+const APPDIR = ".garbanzo"
+const SAVEFILE = "mark.csv"
+
 // 初期化する
-func putConfDir(dir string) {
-	fileInfo, err := os.Lstat(dir)
+func (c *Config) putConfDir() {
+	fileInfo, err := os.Lstat(c.baseDir)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fileMode := fileInfo.Mode()
 	unixPerms := fileMode & os.ModePerm
-	path := dir + "/.garbanzo/"
+	path := filepath.Join(c.baseDir, APPDIR)
 
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		if err := os.Mkdir(path, unixPerms); err != nil {
@@ -26,7 +30,7 @@ func putConfDir(dir string) {
 	}
 }
 
-func markToFile(url string) {
+func (c *Config) markToFile(url string) {
 	if _, err := os.Stat("./.garbanzo/mark.csv"); errors.Is(err, os.ErrNotExist) {
 		f, err := os.Create("./.garbanzo/mark.csv")
 		defer f.Close()
@@ -51,7 +55,7 @@ func markToFile(url string) {
 	writer.Write([]string{url})
 }
 
-func isMarked(url string) bool {
+func (c *Config) isMarked(url string) bool {
 	file, err := os.Open("./.garbanzo/mark.csv")
 	if err != nil {
 		log.Fatal(err)
