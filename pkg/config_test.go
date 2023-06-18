@@ -61,5 +61,6 @@ func TestLoadFeedSources(t *testing.T) {
 - title: RFC2
   url: https://www.rfc-editor.org/rfcrss.xml
 `)
-	c.loadFeedSources(b)
+	ss := c.loadFeedSources(b)
+	assert.Equal(t, 2, len(ss))
 }
