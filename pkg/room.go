@@ -70,7 +70,7 @@ func (r *room) run() {
 	go func() {
 		t1 := time.NewTicker(syncSecond * time.Second)
 		defer t1.Stop()
-		t2 := time.NewTicker(30 * time.Second)
+		t2 := time.NewTicker(60 * 5 * time.Second)
 		defer t2.Stop()
 		t3 := time.NewTicker(2 * time.Second)
 		defer t3.Stop()
@@ -107,10 +107,7 @@ func (r *room) run() {
 					}
 				}()
 				go func() {
-					err := r.getFeeds()
-					if err != nil {
-						log.Println(err)
-					}
+					r.fetchFeeds()
 				}()
 			case <-t3.C:
 				go func() {
@@ -258,10 +255,10 @@ func (r *room) fetchCache() error {
 	return nil
 }
 
-func (r *room) getFeeds() error {
+// フィードURLからイベントを取得する
+func (r *room) getFeedEvent(feedURL string) error {
 	fp := gofeed.NewParser()
-	// TODO: URLを別から取ってこれるようにする
-	feed, err := fp.ParseURL("https://www.rfc-editor.org/rfcrss.xml")
+	feed, err := fp.ParseURL(feedURL)
 	if err != nil {
 		return err
 	}
@@ -309,4 +306,15 @@ func (r *room) getFeeds() error {
 		time.Sleep(2 * time.Second)
 	}
 	return nil
+}
+
+// 設定ファイルのフィードリストから、それぞれ取得する
+func (r *room) fetchFeeds() {
+	feeds := r.config.loadFeedFile()
+	for _, f := range feeds {
+		err := r.getFeedEvent(f.URL)
+		if err != nil {
+			log.Println(err)
+		}
+	}
 }

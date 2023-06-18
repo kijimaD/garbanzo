@@ -39,7 +39,7 @@ func NewRouter(templDir string, publicDir string) *echo.Echo {
 	homedir, _ := os.UserHomeDir()
 	room.config = NewConfig(homedir)
 	go room.fetchEvent()                                            // 初回実行
-	go room.getFeeds()                                              // 初回実行
+	go room.fetchFeeds()                                            // 初回実行
 	go func() { time.Sleep(10 * time.Second); room.fetchCache() }() // 初回実行
 	go room.run()
 
