@@ -36,7 +36,10 @@ func NewRouter(templDir string, publicDir string) *echo.Echo {
 
 	room := newRoom()
 	room.tracer = trace.New(os.Stdout)
+	homedir, _ := os.UserHomeDir()
+	room.config = NewConfig(homedir)
 	go room.fetchEvent()                                            // 初回実行
+	go room.fetchFeeds()                                            // 初回実行
 	go func() { time.Sleep(10 * time.Second); room.fetchCache() }() // 初回実行
 	go room.run()
 
@@ -44,7 +47,9 @@ func NewRouter(templDir string, publicDir string) *echo.Echo {
 	e.Renderer = renderer
 	e.GET("/", rootHandler)
 	e.GET("/events", room.eventHandler)
+	// TODO: static系を1ハンドラにまとめる
 	e.GET("/favicon.ico", faviconHandler)
+	e.GET("/rssicon", rssiconHandler)
 	return e
 }
 
@@ -58,4 +63,12 @@ func faviconHandler(c echo.Context) error {
 		return err
 	}
 	return c.Blob(http.StatusOK, "image/x-icon", data)
+}
+
+func rssiconHandler(c echo.Context) error {
+	data, err := fss.ReadFile("static/rss.svg")
+	if err != nil {
+		return err
+	}
+	return c.Blob(http.StatusOK, "image/svg+xml", data)
 }

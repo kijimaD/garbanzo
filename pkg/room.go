@@ -6,12 +6,14 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/kijimaD/garbanzo/trace"
 	"github.com/labstack/echo/v4"
+	"github.com/mmcdole/gofeed"
 )
 
 type room struct {
@@ -33,6 +35,8 @@ type room struct {
 	tracer trace.Tracer
 	events Events
 	mu     *sync.RWMutex
+	feeds  map[string]bool
+	config *Config
 }
 
 func newRoom() *room {
@@ -48,6 +52,8 @@ func newRoom() *room {
 		tracer:     trace.Off(), // デフォルトではログ出力はされない
 		events:     make(Events),
 		mu:         &sync.RWMutex{},
+		feeds:      make(map[string]bool),
+		config:     &Config{},
 	}
 }
 
@@ -64,7 +70,7 @@ func (r *room) run() {
 	go func() {
 		t1 := time.NewTicker(syncSecond * time.Second)
 		defer t1.Stop()
-		t2 := time.NewTicker(30 * time.Second)
+		t2 := time.NewTicker(60 * 5 * time.Second)
 		defer t2.Stop()
 		t3 := time.NewTicker(2 * time.Second)
 		defer t3.Stop()
@@ -100,6 +106,9 @@ func (r *room) run() {
 						log.Println(err)
 					}
 				}()
+				go func() {
+					r.fetchFeeds()
+				}()
 			case <-t3.C:
 				go func() {
 					r.mu.RLock()
@@ -126,12 +135,21 @@ func (r *room) run() {
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
 		case mark := <-r.markRead:
-			err := r.markThreadRead(mark.ID)
-			if err != nil {
-				log.Println("mark thread read err:", err)
-			}
+			// markは時間のかかる処理なので、並行処理にしないと高速で複数送られたときチャンネルがブロックされる
+			go func() {
+				if mark.Source == GitHubNotification {
+					// GitHub
+					err := r.markThreadRead(mark.ID)
+					if err != nil {
+						log.Println("mark thread read err:", err)
+					}
+				} else if mark.Source == Feed {
+					// feed
+					r.config.markToFile(mark.HTMLURL)
+				}
+			}()
 			delete(r.events, mark.ID)
-			delete(proxyCache, mark.URL)
+			delete(proxyCache, mark.ProxyURL)
 			r.statsStore.ReadCount++
 			r.stats <- r.statsStore
 		case stats := <-r.stats:
@@ -235,4 +253,78 @@ func (r *room) fetchCache() error {
 		time.Sleep(time.Second * 1)
 	}
 	return nil
+}
+
+// フィードURLからイベントを取得する
+func (r *room) getFeedEvent(feedURL string) error {
+	fp := gofeed.NewParser()
+	feed, err := fp.ParseURL(feedURL)
+	if err != nil {
+		return err
+	}
+	for _, f := range feed.Items {
+		_, exists := r.feeds[f.Link]
+		if exists {
+			continue
+		}
+		if r.config.isMarked(f.Link) {
+			continue
+		}
+
+		unix := time.Now().Unix()
+
+		var published time.Time
+		if f.PublishedParsed != nil {
+			published = *f.PublishedParsed
+		} else {
+			published = time.Now()
+		}
+
+		var authorName string
+		if f.Author != nil {
+			authorName = f.Author.Name
+		} else {
+			authorName = ""
+		}
+
+		var content string
+		if f.Content != "" {
+			content = f.Content
+		} else if f.Description != "" {
+			content = f.Description
+		}
+
+		proxyLink, _ := genProxyURL(f.Link)
+		event := newEvent(
+			Feed,
+			strconv.FormatInt(unix, 10),
+			authorName,
+			"http://localhost:8080/rssicon", // TODO: ホストやポートのハードコーディングをやめる
+			f.Title,
+			f.Title,
+			content,
+			content,
+			f.Link,
+			proxyLink,
+			feed.Title,
+			genTimeWithTZ(&published),
+			"",
+			published,
+		)
+		r.fetch <- event
+		r.feeds[f.Link] = true
+		time.Sleep(2 * time.Second)
+	}
+	return nil
+}
+
+// 設定ファイルのフィードリストから、それぞれ取得する
+func (r *room) fetchFeeds() {
+	feeds := r.config.loadFeedFile()
+	for _, f := range feeds {
+		err := r.getFeedEvent(f.URL)
+		if err != nil {
+			log.Println(err)
+		}
+	}
 }

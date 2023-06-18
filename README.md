@@ -8,6 +8,11 @@ support push notification
 
 ![image](https://github.com/kijimaD/garbanzo/assets/11595790/5ce7eab9-efc3-4462-b2cc-059cbbef3dbd)
 
+restriction
+
+- can't open a link in iframe
+- can't open a private link
+
 ## how to use
 
 Install
