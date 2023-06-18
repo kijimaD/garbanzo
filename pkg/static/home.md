@@ -1,3 +1,3 @@
 # Garbanzo
 
-Garbanzo is fast GitHub viewer!
+Garbanzo is fast notification viewer!
