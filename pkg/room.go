@@ -270,13 +270,16 @@ func (r *room) getFeedEvent(feedURL string) error {
 		if r.config.isMarked(f.Link) {
 			continue
 		}
+
 		unix := time.Now().Unix()
-		var updated time.Time
-		if f.UpdatedParsed != nil {
-			updated = *f.UpdatedParsed
+
+		var published time.Time
+		if f.PublishedParsed != nil {
+			published = *f.PublishedParsed
 		} else {
-			updated = time.Now()
+			published = time.Now()
 		}
+
 		var authorName string
 		if f.Author != nil {
 			authorName = f.Author.Name
@@ -284,22 +287,29 @@ func (r *room) getFeedEvent(feedURL string) error {
 			authorName = ""
 		}
 
+		var content string
+		if f.Content != "" {
+			content = f.Content
+		} else if f.Description != "" {
+			content = f.Description
+		}
+
 		proxyLink, _ := genProxyURL(f.Link)
 		event := newEvent(
 			Feed,
 			strconv.FormatInt(unix, 10),
 			authorName,
-			"", // avatar URL
+			"http://localhost:8080/rssicon", // TODO: ホストやポートのハードコーディングをやめる
 			f.Title,
 			f.Title,
-			f.Content,
-			f.Content,
+			content,
+			content,
 			f.Link,
 			proxyLink,
-			"site name",
-			genTimeWithTZ(&updated),
-			"category",
-			updated,
+			feed.Title,
+			genTimeWithTZ(&published),
+			"",
+			published,
 		)
 		r.fetch <- event
 		r.feeds[f.Link] = true
