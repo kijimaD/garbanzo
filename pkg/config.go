@@ -42,7 +42,7 @@ func (c *Config) feedFilePath() string {
 func (c *Config) loadFeedFile() feedSources {
 	b, err := os.ReadFile(c.feedFilePath())
 	if err != nil {
-		log.Println(c.feedFilePath(), "is not exists")
+		log.Println(err)
 	}
 	f := c.loadFeedSources(b)
 	return f
