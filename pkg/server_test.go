@@ -50,7 +50,7 @@ func TestHomeHandler(t *testing.T) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, string(respBody), "Garbanzo is fast GitHub viewer!")
+	assert.Contains(t, string(respBody), "Garbanzo is fast notification viewer!")
 }
 
 // func TestGHHandler(t *testing.T) {

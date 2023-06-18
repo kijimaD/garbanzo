@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/kijimaD/garbanzo/trace"
 	"github.com/labstack/echo/v4"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -288,10 +289,15 @@ func (r *room) getFeedEvent(feedURL string) error {
 		}
 
 		var content string
+		var contentHTML string
+		p := bluemonday.StripTagsPolicy()
 		if f.Content != "" {
-			content = f.Content
+			content = p.Sanitize(f.Content)
+			contentHTML = f.Content
+
 		} else if f.Description != "" {
-			content = f.Description
+			content = p.Sanitize(f.Description)
+			contentHTML = f.Description
 		}
 
 		proxyLink, _ := genProxyURL(f.Link)
@@ -303,7 +309,7 @@ func (r *room) getFeedEvent(feedURL string) error {
 			f.Title,
 			f.Title,
 			content,
-			content,
+			contentHTML,
 			f.Link,
 			proxyLink,
 			feed.Title,

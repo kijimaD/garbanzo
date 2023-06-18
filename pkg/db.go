@@ -12,7 +12,7 @@ import (
 const APPDIR = ".garbanzo"
 const SAVEFILE = "mark.csv"
 
-// 初期化する
+// 設定ディレクトリを初期化する。すでにあれば何もしない
 func (c *Config) putConfDir() {
 	fileInfo, err := os.Lstat(c.baseDir)
 	if err != nil {
@@ -21,9 +21,26 @@ func (c *Config) putConfDir() {
 	fileMode := fileInfo.Mode()
 	unixPerms := fileMode & os.ModePerm
 
+	// 設定ファイルを初期化する
 	if _, err := os.Stat(c.appDirPath()); errors.Is(err, os.ErrNotExist) {
-		if err := os.Mkdir(c.appDirPath(), unixPerms); err != nil {
-			log.Fatal(err)
+		{
+			if err := os.Mkdir(c.appDirPath(), unixPerms); err != nil {
+				log.Fatal(err)
+			}
+		}
+		{
+			f, err := os.Create(c.saveFilePath())
+			defer f.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		{
+			f, err := os.Create(c.feedFilePath())
+			defer f.Close()
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	}
 }

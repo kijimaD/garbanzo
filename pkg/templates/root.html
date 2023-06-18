@@ -129,14 +129,21 @@
     <body class="h-100">
         <div class="d-flex flex-row">
             <!-- サイドメニュー1 -->
-            <nav class="bg-white" style="min-width: 140px;">
-                <ul class="nav flex-column m-0 px-0">
-                    <li class="nav-item mx-3 text-muted active">
-                        <p>read: <span class="badge bg-secondary" id="x-read-counter">0</span></p>
-                        <p>event: <span class="badge bg-secondary" id="x-event-counter">0</span></p>
-                        <p>cache: <span class="badge bg-secondary" id="x-cache-counter">0</span></p>
-                    </li>
-                </ul>
+            <nav class="bg-white" style="min-width: 110px;">
+                <table class="table table-white">
+                    <tr>
+                        <th scope="row">read</th>
+                        <td><span class="badge bg-secondary" id="x-read-counter">0</span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">event</th>
+                        <td><span class="badge bg-secondary" id="x-event-counter">0</span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">cache</th>
+                        <td><span class="badge bg-secondary" id="x-cache-counter">0</span></p></td>
+                    </tr>
+                </table>
             </nav>
             <!-- サイドメニュー2 -->
             <nav class="bg-light" style="min-width: 524px; overflow-y: scroll; height: 100vh;">
