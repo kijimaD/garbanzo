@@ -51,6 +51,18 @@ func TestPutDir(t *testing.T) {
 	c.PutConfDir()
 	c.PutConfDir()
 	defer os.RemoveAll(".garbanzo")
+
+	sb, err := os.ReadFile(c.saveFilePath())
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "# marked list\n", string(sb))
+
+	fb, err := os.ReadFile(c.feedFilePath())
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "# feed list\n- desc: RFC\n  url: https://www.rfc-editor.org/rfcrss.xml\n- desc: Hacker News\n  url: https://news.ycombinator.com/rss\n", string(fb))
 }
 
 func TestLoadFeedSources(t *testing.T) {

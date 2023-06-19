@@ -51,6 +51,14 @@ func (c *Config) loadFeedSources(b []byte) feedSources {
 
 // 設定ディレクトリを初期化する。すでにあれば何もしない
 func (c *Config) PutConfDir() {
+	const saveFileContent = `# marked list
+`
+	const feedFileContent = `# feed list
+- desc: RFC
+  url: https://www.rfc-editor.org/rfcrss.xml
+- desc: Hacker News
+  url: https://news.ycombinator.com/rss
+`
 	fileInfo, err := os.Lstat(c.baseDir)
 	if err != nil {
 		fmt.Println(err)
@@ -68,6 +76,9 @@ func (c *Config) PutConfDir() {
 		{
 			f, err := os.Create(c.saveFilePath())
 			defer f.Close()
+			if _, err = f.Write([]byte(saveFileContent)); err != nil {
+				log.Println(err)
+			}
 			if err != nil {
 				log.Println(err)
 			}
@@ -75,6 +86,9 @@ func (c *Config) PutConfDir() {
 		{
 			f, err := os.Create(c.feedFilePath())
 			defer f.Close()
+			if _, err = f.Write([]byte(feedFileContent)); err != nil {
+				log.Println(err)
+			}
 			if err != nil {
 				log.Println(err)
 			}
