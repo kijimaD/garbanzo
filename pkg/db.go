@@ -13,7 +13,7 @@ const APPDIR = ".garbanzo"
 const SAVEFILE = "mark.csv"
 
 // 設定ディレクトリを初期化する。すでにあれば何もしない
-func (c *Config) putConfDir() {
+func (c *Config) PutConfDir() {
 	fileInfo, err := os.Lstat(c.baseDir)
 	if err != nil {
 		fmt.Println(err)

@@ -9,7 +9,7 @@ import (
 
 func TestIsMark(t *testing.T) {
 	c := NewConfig(".")
-	c.putConfDir()
+	c.PutConfDir()
 	c.markToFile("http://ismark-example.com")
 	assert.Equal(t, false, c.isMarked("NOT_EXISTS"))
 	assert.Equal(t, true, c.isMarked("http://ismark-example.com"))

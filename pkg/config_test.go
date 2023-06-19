@@ -48,8 +48,8 @@ func TestSaveFilePath(t *testing.T) {
 
 func TestPutDir(t *testing.T) {
 	c := NewConfig(".")
-	c.putConfDir()
-	c.putConfDir()
+	c.PutConfDir()
+	c.PutConfDir()
 	defer os.RemoveAll(".garbanzo")
 }
 
