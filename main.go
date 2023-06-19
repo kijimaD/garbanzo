@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"strconv"
@@ -23,6 +24,14 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Can't parse environment variables: %s\n", err.Error())
 		os.Exit(1)
 	}
+
+	// 設定ファイルがない場合は作成する
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		log.Println(err)
+	}
+	c := garbanzo.NewConfig(homedir)
+	c.PutConfDir()
 
 	go func() {
 		router := garbanzo.NewRouter("templates/*.html", "static/*")

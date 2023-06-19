@@ -48,19 +48,35 @@ func TestSaveFilePath(t *testing.T) {
 
 func TestPutDir(t *testing.T) {
 	c := NewConfig(".")
-	c.putConfDir()
-	c.putConfDir()
+	c.PutConfDir()
+	c.PutConfDir()
 	defer os.RemoveAll(".garbanzo")
+
+	sb, err := os.ReadFile(c.saveFilePath())
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "# marked list\n", string(sb))
+
+	fb, err := os.ReadFile(c.feedFilePath())
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "# feed list\n- desc: RFC\n  url: https://www.rfc-editor.org/rfcrss.xml\n- desc: Hacker News\n  url: https://news.ycombinator.com/rss\n", string(fb))
 }
 
 func TestLoadFeedSources(t *testing.T) {
 	c := NewConfig(".")
 	b := []byte(`
-- title: RFC
+- desc: RFC1
   url: https://www.rfc-editor.org/rfcrss.xml
-- title: RFC2
+- desc: RFC2
   url: https://www.rfc-editor.org/rfcrss.xml
 `)
 	ss := c.loadFeedSources(b)
+	assert.Equal(t, "RFC1", ss[0].Desc)
+	assert.Equal(t, "RFC2", ss[1].Desc)
+	assert.Equal(t, "https://www.rfc-editor.org/rfcrss.xml", ss[0].URL)
+	assert.Equal(t, "https://www.rfc-editor.org/rfcrss.xml", ss[1].URL)
 	assert.Equal(t, 2, len(ss))
 }

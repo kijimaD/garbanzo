@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -24,7 +25,15 @@ func homeHandler(c echo.Context) error {
 		fmt.Println(err)
 		return err
 	}
-	html := string(mdToHTML([]byte(data)))
+	md := string(data)
+
+	homedir, _ := os.UserHomeDir()
+	conf := NewConfig(homedir)
+	b, _ := os.ReadFile(conf.feedFilePath())
+	fss := conf.loadFeedSources(b)
+	md = md + fss.dumpFeedsTable()
+
+	html := string(mdToHTML([]byte(md)))
 	return c.HTML(http.StatusOK, html)
 }
 
