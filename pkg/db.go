@@ -3,7 +3,6 @@ package garbanzo
 import (
 	"encoding/csv"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,39 +10,6 @@ import (
 
 const APPDIR = ".garbanzo"
 const SAVEFILE = "mark.csv"
-
-// 設定ディレクトリを初期化する。すでにあれば何もしない
-func (c *Config) PutConfDir() {
-	fileInfo, err := os.Lstat(c.baseDir)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fileMode := fileInfo.Mode()
-	unixPerms := fileMode & os.ModePerm
-
-	// 設定ファイルを初期化する
-	if _, err := os.Stat(c.appDirPath()); errors.Is(err, os.ErrNotExist) {
-		{
-			if err := os.Mkdir(c.appDirPath(), unixPerms); err != nil {
-				log.Fatal(err)
-			}
-		}
-		{
-			f, err := os.Create(c.saveFilePath())
-			defer f.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}
-		{
-			f, err := os.Create(c.feedFilePath())
-			defer f.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}
-	}
-}
 
 // 既読ファイルに書き込む
 func (c *Config) markToFile(url string) {
