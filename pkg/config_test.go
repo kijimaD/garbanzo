@@ -56,11 +56,15 @@ func TestPutDir(t *testing.T) {
 func TestLoadFeedSources(t *testing.T) {
 	c := NewConfig(".")
 	b := []byte(`
-- title: RFC
+- desc: RFC1
   url: https://www.rfc-editor.org/rfcrss.xml
-- title: RFC2
+- desc: RFC2
   url: https://www.rfc-editor.org/rfcrss.xml
 `)
 	ss := c.loadFeedSources(b)
+	assert.Equal(t, "RFC1", ss[0].Desc)
+	assert.Equal(t, "RFC2", ss[1].Desc)
+	assert.Equal(t, "https://www.rfc-editor.org/rfcrss.xml", ss[0].URL)
+	assert.Equal(t, "https://www.rfc-editor.org/rfcrss.xml", ss[1].URL)
 	assert.Equal(t, 2, len(ss))
 }

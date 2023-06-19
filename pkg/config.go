@@ -14,13 +14,6 @@ type Config struct {
 	baseDir string
 }
 
-type feedSources []feedSource
-
-type feedSource struct {
-	Title string
-	URL   string
-}
-
 func NewConfig(baseDir string) *Config {
 	return &Config{
 		baseDir: baseDir,
