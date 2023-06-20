@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const FEEDFILE = "feeds.yml"
+const FeedFile = "feeds.yml"
 
 type Config struct {
 	baseDir string
@@ -23,15 +23,15 @@ func NewConfig(baseDir string) *Config {
 }
 
 func (c *Config) appDirPath() string {
-	return filepath.Join(c.baseDir, APPDIR)
+	return filepath.Join(c.baseDir, AppDir)
 }
 
 func (c *Config) saveFilePath() string {
-	return filepath.Join(c.baseDir, APPDIR, SAVEFILE)
+	return filepath.Join(c.baseDir, AppDir, SaveFile)
 }
 
 func (c *Config) feedFilePath() string {
-	return filepath.Join(c.baseDir, APPDIR, FEEDFILE)
+	return filepath.Join(c.baseDir, AppDir, FeedFile)
 }
 
 func (c *Config) loadFeedFile() feedSources {

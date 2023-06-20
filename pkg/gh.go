@@ -25,10 +25,10 @@ import (
 const timezone = "Asia/Tokyo"
 const timeformat = "2006-01-02 15:04"
 
-var PROXY_BASE string
+var ProxyBase string
 
 type Env struct {
-	ProxyHost   string `envconfig:"PROXY_BASE" default:"http://localhost"`
+	ProxyHost   string `envconfig:"ProxyBase" default:"http://localhost"`
 	ProxyPort   uint16 `envconfig:"PROXY_PORT" default:"8081"`
 	GitHubToken string `envconfig:"GH_TOKEN" required:"true"`
 }
@@ -41,7 +41,7 @@ func init() {
 		fmt.Fprintf(os.Stderr, "Can't parse environment variables: %s\n", err.Error())
 		os.Exit(1)
 	}
-	PROXY_BASE = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
+	ProxyBase = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
 }
 
 type clientI interface {
@@ -80,11 +80,6 @@ func (gh *GitHub) getNotifications() error {
 	return nil
 }
 
-const ISSUES_EVENT_TYPE = "issues"
-const COMMENTS_EVENT_TYPE = "comments"
-const PULLREQUESTS_EVENT_TYPE = "pulls"
-const RELEASES_EVENT_TYPE = "releases"
-
 // notificationsの情報を補足してeventに変換する
 // 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification(r *room) error {
@@ -106,18 +101,18 @@ func (gh *GitHub) processNotification(r *room) error {
 		if _, exists := r.events[*n.ID]; exists {
 			continue
 		}
-		if *n.Subject.Type == "Discussion" {
+		if *n.Subject.Type == string(DiscussionSubjectType) {
 			// discussionはなぜかURLが空になっていて、辿ることができない
 			// https://github.com/orgs/community/discussions/15252
 			continue
 		}
-		if *n.Subject.Type == "CheckSuite" {
+		if *n.Subject.Type == string(CheckSuitSubjectType) {
 			// コミットへの通知? URLを持っていない
 			continue
 		}
 
 		var originURL string
-		if *n.Subject.Type == "PullRequest" && n.Subject.LatestCommentURL == nil {
+		if *n.Subject.Type == string(PullRequestSubjectType) && n.Subject.LatestCommentURL == nil {
 			// PRオープンやクローズ、レビュー送信の場合はLatestCommentURLがない
 			originURL = *n.Subject.URL
 		} else {
@@ -137,30 +132,30 @@ func (gh *GitHub) processNotification(r *room) error {
 		// commit comment:    /comments/xxxxx
 		// release            /releases/xxxxx
 
-		if secondLastElement == PULLREQUESTS_EVENT_TYPE {
+		if secondLastElement == string(PullrequestsEventType) {
 			event, err := gh.getPullRequestEvent(n)
 			if err != nil {
 				return err
 			}
 			r.fetch <- event
-		} else if secondLastElement == ISSUES_EVENT_TYPE {
+		} else if secondLastElement == string(IssuesEventType) {
 			// issue open
 			event, err := gh.getIssueEvent(n)
 			if err != nil {
 				return err
 			}
 			r.fetch <- event
-		} else if thirdLastElement == ISSUES_EVENT_TYPE &&
-			secondLastElement == COMMENTS_EVENT_TYPE {
+		} else if thirdLastElement == string(IssuesEventType) &&
+			secondLastElement == string(CommentsEventType) {
 			// comment
 			event, err := gh.getIssueCommentEvent(n)
 			if err != nil {
 				return err
 			}
 			r.fetch <- event
-		} else if secondLastElement == COMMENTS_EVENT_TYPE {
+		} else if secondLastElement == string(CommentsEventType) {
 			// commit comment
-		} else if secondLastElement == RELEASES_EVENT_TYPE {
+		} else if secondLastElement == string(ReleasesEventType) {
 			event, err := gh.getReleaseEvent(n)
 			if err != nil {
 				return err
@@ -402,9 +397,9 @@ func genProxyURL(u string) (string, error) {
 	}
 	var proxyURL string
 	if h.Fragment == "" {
-		proxyURL = PROXY_BASE + h.Path + "?origin=" + h.Host
+		proxyURL = ProxyBase + h.Path + "?origin=" + h.Host
 	} else {
-		proxyURL = PROXY_BASE + h.Path + "?origin=" + h.Host + "#" + h.Fragment
+		proxyURL = ProxyBase + h.Path + "?origin=" + h.Host + "#" + h.Fragment
 	}
 
 	return proxyURL, nil
