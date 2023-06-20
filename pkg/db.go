@@ -8,8 +8,8 @@ import (
 	"os"
 )
 
-const APPDIR = ".garbanzo"
-const SAVEFILE = "mark.csv"
+const AppDir = ".garbanzo"
+const SaveFile = "mark.csv"
 
 // 既読ファイルに書き込む
 func (c *Config) markToFile(url string) {
