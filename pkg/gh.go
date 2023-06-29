@@ -30,7 +30,7 @@ var ProxyBase string
 type Env struct {
 	ProxyHost   string `envconfig:"ProxyBase" default:"http://localhost"`
 	ProxyPort   uint16 `envconfig:"PROXY_PORT" default:"8081"`
-	GitHubToken string `envconfig:"GH_TOKEN" required:"true"`
+	GitHubToken string `envconfig:"GH_TOKEN"`
 }
 
 var env Env
@@ -52,17 +52,25 @@ type GitHub struct {
 	notifications map[string]*github.Notification
 }
 
-func newGitHub() *GitHub {
-	ctx := context.Background()
+func newGitHub(token string) (*GitHub, error) {
+	// 環境変数を最優先する
+	t := token
+	if env.GitHubToken != "" {
+		t = env.GitHubToken
+	}
+	if t == "" {
+		return nil, fmt.Errorf("not set GitHub token")
+	}
 	sts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: env.GitHubToken},
+		&oauth2.Token{AccessToken: t},
 	)
+	ctx := context.Background()
 	tc := oauth2.NewClient(ctx, sts)
 	client := github.NewClient(tc)
 	return &GitHub{
 		Client:        client,
 		notifications: make(map[string]*github.Notification),
-	}
+	}, nil
 }
 
 // issueが開かれたときに対応してない。その場合は、LatestCommentURLにコメントIDではなく、issue IDが入る。

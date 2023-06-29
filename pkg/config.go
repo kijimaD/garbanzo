@@ -11,6 +11,7 @@ import (
 )
 
 const FeedFile = "feeds.yml"
+const TokenFile = "token"
 
 type Config struct {
 	baseDir string
@@ -32,6 +33,10 @@ func (c *Config) saveFilePath() string {
 
 func (c *Config) feedFilePath() string {
 	return filepath.Join(c.baseDir, AppDir, FeedFile)
+}
+
+func (c *Config) tokenFilePath() string {
+	return filepath.Join(c.baseDir, AppDir, TokenFile)
 }
 
 func (c *Config) loadFeedFile() feedSources {

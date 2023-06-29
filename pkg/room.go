@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"sync"
@@ -212,8 +213,12 @@ func (r *room) eventHandler(c echo.Context) error {
 }
 
 func (r *room) fetchEvent() error {
-	gh := newGitHub()
-	err := gh.getNotifications()
+	b, err := os.ReadFile(r.config.tokenFilePath())
+	if err != nil {
+		return err
+	}
+	gh, err := newGitHub(string(b))
+	err = gh.getNotifications()
 	if err != nil {
 		return err
 	}
@@ -225,9 +230,14 @@ func (r *room) fetchEvent() error {
 }
 
 func (r *room) markThreadRead(id string) error {
-	gh := newGitHub()
+	b, err := os.ReadFile(r.config.tokenFilePath())
+	if err != nil {
+		return err
+	}
+	gh, err := newGitHub(string(b))
+	err = gh.getNotifications()
 	ctx := context.Background()
-	_, err := gh.Client.Activity.MarkThreadRead(ctx, id)
+	_, err = gh.Client.Activity.MarkThreadRead(ctx, id)
 	if err != nil {
 		return err
 	}
