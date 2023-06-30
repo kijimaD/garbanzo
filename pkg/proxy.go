@@ -1,38 +1,32 @@
 package garbanzo
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"sync"
 
 	"github.com/labstack/echo/v4"
 )
 
-func NewProxyRouter() *echo.Echo {
+type proxyServ struct {
+	config *Config
+}
+
+func NewProxyRouter(c *Config) *echo.Echo {
+	ps := proxyServ{config: c}
 	e := echo.New()
-	e.GET("/", homeHandler)
-	e.GET("/*", ghHandler)
+	e.GET("/", ps.homeHandler)
+	e.GET("/*", ps.ghHandler)
 
 	return e
 }
 
-func homeHandler(c echo.Context) error {
-	data, err := fss.ReadFile("static/home.md")
+func (p *proxyServ) homeHandler(c echo.Context) error {
+	md, err := buildHomeMD(p.config)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	md := string(data)
-
-	homedir, _ := os.UserHomeDir()
-	conf := NewConfig(homedir)
-	b, _ := os.ReadFile(conf.feedFilePath())
-	fss := conf.loadFeedSources(b)
-	md = md + fss.dumpFeedsTable()
-
 	html := string(mdToHTML([]byte(md)))
 	return c.HTML(http.StatusOK, html)
 }
@@ -40,7 +34,7 @@ func homeHandler(c echo.Context) error {
 var proxyCache = make(map[string]string)
 var proxyMutex = &sync.RWMutex{}
 
-func ghHandler(c echo.Context) error {
+func (p *proxyServ) ghHandler(c echo.Context) error {
 	var u string
 	reqpath := c.Request().URL.String()
 	h, err := url.Parse(reqpath)

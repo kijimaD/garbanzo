@@ -11,6 +11,7 @@ import (
 )
 
 const FeedFile = "feeds.yml"
+const TokenFile = "token"
 
 type Config struct {
 	baseDir string
@@ -32,6 +33,10 @@ func (c *Config) saveFilePath() string {
 
 func (c *Config) feedFilePath() string {
 	return filepath.Join(c.baseDir, AppDir, FeedFile)
+}
+
+func (c *Config) tokenFilePath() string {
+	return filepath.Join(c.baseDir, AppDir, TokenFile)
 }
 
 func (c *Config) loadFeedFile() feedSources {
@@ -68,30 +73,35 @@ func (c *Config) PutConfDir() {
 
 	// 設定ファイルを初期化する
 	if _, err := os.Stat(c.appDirPath()); errors.Is(err, os.ErrNotExist) {
-		{
-			if err := os.Mkdir(c.appDirPath(), unixPerms); err != nil {
-				log.Fatal(err)
-			}
+		if err := os.Mkdir(c.appDirPath(), unixPerms); err != nil {
+			log.Fatal(err)
 		}
-		{
-			f, err := os.Create(c.saveFilePath())
-			defer f.Close()
-			if _, err = f.Write([]byte(saveFileContent)); err != nil {
-				log.Println(err)
-			}
-			if err != nil {
-				log.Println(err)
-			}
+	}
+	if _, err := os.Stat(c.saveFilePath()); errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(c.saveFilePath())
+		defer f.Close()
+		if _, err = f.Write([]byte(saveFileContent)); err != nil {
+			log.Println(err)
 		}
-		{
-			f, err := os.Create(c.feedFilePath())
-			defer f.Close()
-			if _, err = f.Write([]byte(feedFileContent)); err != nil {
-				log.Println(err)
-			}
-			if err != nil {
-				log.Println(err)
-			}
+		if err != nil {
+			log.Println(err)
+		}
+	}
+	if _, err := os.Stat(c.feedFilePath()); errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(c.feedFilePath())
+		defer f.Close()
+		if _, err = f.Write([]byte(feedFileContent)); err != nil {
+			log.Println(err)
+		}
+		if err != nil {
+			log.Println(err)
+		}
+	}
+	if _, err := os.Stat(c.tokenFilePath()); errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(c.tokenFilePath())
+		defer f.Close()
+		if err != nil {
+			log.Println(err)
 		}
 	}
 }
