@@ -10,8 +10,9 @@ import (
 func TestIsMark(t *testing.T) {
 	c := NewConfig(".")
 	c.PutConfDir()
-	c.markToFile("http://ismark-example.com")
-	assert.Equal(t, false, c.isMarked("NOT_EXISTS"))
-	assert.Equal(t, true, c.isMarked("http://ismark-example.com"))
+	fdb := newfdb(c)
+	fdb.markToFile("http://ismark-example.com")
+	assert.Equal(t, false, fdb.isMarked("NOT_EXISTS"))
+	assert.Equal(t, true, fdb.isMarked("http://ismark-example.com"))
 	defer os.RemoveAll(".garbanzo")
 }

@@ -10,11 +10,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const AppDir = ".garbanzo"
 const FeedFile = "feeds.yml"
 const TokenFile = "token"
+const SaveFile = "mark.csv"
 
 type Config struct {
-	baseDir string
+	baseDir string // 設定ファイルがあるディレクトリ
 }
 
 func NewConfig(baseDir string) *Config {

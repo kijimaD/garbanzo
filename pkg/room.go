@@ -147,7 +147,8 @@ func (r *room) run() {
 					}
 				} else if mark.Source == Feed {
 					// feed
-					r.config.markToFile(mark.HTMLURL)
+					fdb := newfdb(r.config)
+					fdb.markToFile(mark.HTMLURL)
 				}
 			}()
 			delete(r.events, mark.ID)
@@ -278,7 +279,8 @@ func (r *room) getFeedEvent(feedURL string) error {
 		if exists {
 			continue
 		}
-		if r.config.isMarked(f.Link) {
+		fdb := newfdb(r.config)
+		if fdb.isMarked(f.Link) {
 			continue
 		}
 
