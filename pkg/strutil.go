@@ -24,10 +24,10 @@ func buildHomeMD(c *Config) (string, error) {
 	return md, nil
 }
 
-const templateMDPath = "static/home.md"
+const templateMDPath = "templates/home.md"
 
 func buildTemplateMD() (string, error) {
-	data, err := fss.ReadFile(templateMDPath)
+	data, err := fst.ReadFile(templateMDPath)
 	if err != nil {
 		return "", err
 	}
