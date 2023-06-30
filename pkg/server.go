@@ -49,7 +49,7 @@ func NewRouter(templDir string, publicDir string) *echo.Echo {
 	e.GET("/events", room.eventHandler)
 	// TODO: static系を1ハンドラにまとめる
 	e.GET("/favicon.ico", faviconHandler)
-	e.GET("/rssicon", rssiconHandler)
+	e.GET("/rssicon", rssIconHandler)
 	return e
 }
 
@@ -65,7 +65,7 @@ func faviconHandler(c echo.Context) error {
 	return c.Blob(http.StatusOK, "image/x-icon", data)
 }
 
-func rssiconHandler(c echo.Context) error {
+func rssIconHandler(c echo.Context) error {
 	data, err := fss.ReadFile("static/rss.svg")
 	if err != nil {
 		return err
