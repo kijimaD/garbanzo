@@ -98,5 +98,12 @@ func (c *Config) PutConfDir() {
 				log.Println(err)
 			}
 		}
+		{
+			f, err := os.Create(c.tokenFilePath())
+			defer f.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}
 	}
 }
