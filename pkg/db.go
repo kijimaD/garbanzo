@@ -26,8 +26,8 @@ func (fdb *fdb) markToFile(url string) {
 		}
 
 		writer := csv.NewWriter(f)
-		writer.Write([]string{"url"}) // ヘッダー
-		writer.Flush()                // Writeだと内部バッファに書き込まれるだけ
+		writer.Write([]string{"URL"}) // ヘッダー
+		writer.Flush()                // Writeだと内部バッファに書き込まれるだけなのでFlush()が必要
 	}
 
 	file, err := os.OpenFile(fdb.config.saveFilePath(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)

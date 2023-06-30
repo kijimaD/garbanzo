@@ -10,10 +10,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const AppDir = ".garbanzo"
-const FeedFile = "feeds.yml"
-const TokenFile = "token"
-const SaveFile = "mark.csv"
+const (
+	AppDir    = ".garbanzo"
+	FeedFile  = "feeds.yml"
+	TokenFile = "token"
+	SaveFile  = "mark.csv"
+)
 
 type Config struct {
 	baseDir string // 設定ファイルがあるディレクトリ
