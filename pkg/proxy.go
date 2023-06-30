@@ -1,11 +1,9 @@
 package garbanzo
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -20,19 +18,10 @@ func NewProxyRouter() *echo.Echo {
 }
 
 func homeHandler(c echo.Context) error {
-	data, err := fss.ReadFile("static/home.md")
+	md, err := buildHomeMD()
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	md := string(data)
-
-	homedir, _ := os.UserHomeDir()
-	conf := NewConfig(homedir)
-	b, _ := os.ReadFile(conf.feedFilePath())
-	fss := conf.loadFeedSources(b)
-	md = md + fss.dumpFeedsTable()
-
 	html := string(mdToHTML([]byte(md)))
 	return c.HTML(http.StatusOK, html)
 }
