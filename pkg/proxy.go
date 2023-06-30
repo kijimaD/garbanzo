@@ -4,25 +4,26 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"sync"
 
 	"github.com/labstack/echo/v4"
 )
 
-func NewProxyRouter() *echo.Echo {
+type proxyServ struct {
+	config *Config
+}
+
+func NewProxyRouter(c *Config) *echo.Echo {
+	ps := proxyServ{config: c}
 	e := echo.New()
-	e.GET("/", homeHandler)
-	e.GET("/*", ghHandler)
+	e.GET("/", ps.homeHandler)
+	e.GET("/*", ps.ghHandler)
 
 	return e
 }
 
-func homeHandler(c echo.Context) error {
-	// TODO: 設定ディレクトリを注入できるようにする
-	homedir, _ := os.UserHomeDir()
-	conf := NewConfig(homedir)
-	md, err := buildHomeMD(conf)
+func (p *proxyServ) homeHandler(c echo.Context) error {
+	md, err := buildHomeMD(p.config)
 	if err != nil {
 		return err
 	}
@@ -33,7 +34,7 @@ func homeHandler(c echo.Context) error {
 var proxyCache = make(map[string]string)
 var proxyMutex = &sync.RWMutex{}
 
-func ghHandler(c echo.Context) error {
+func (p *proxyServ) ghHandler(c echo.Context) error {
 	var u string
 	reqpath := c.Request().URL.String()
 	h, err := url.Parse(reqpath)

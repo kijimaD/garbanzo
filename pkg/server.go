@@ -29,15 +29,14 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
-func NewRouter(templDir string, publicDir string) *echo.Echo {
+func NewRouter(c *Config, templDir string, publicDir string) *echo.Echo {
 	renderer := &TemplateRenderer{
 		templates: template.Must(template.ParseFS(fst, templDir)),
 	}
 
 	room := newRoom()
 	room.tracer = trace.New(os.Stdout)
-	homedir, _ := os.UserHomeDir()
-	room.config = NewConfig(homedir)
+	room.config = c
 	go room.fetchEvent()                                            // 初回実行
 	go room.fetchFeeds()                                            // 初回実行
 	go func() { time.Sleep(10 * time.Second); room.fetchCache() }() // 初回実行

@@ -34,12 +34,12 @@ func main() {
 	c.PutConfDir()
 
 	go func() {
-		router := garbanzo.NewRouter("templates/*.html", "static/*")
+		router := garbanzo.NewRouter(c, "templates/*.html", "static/*")
 		router.Start(":" + strconv.FormatUint(uint64(env.AppPort), 10))
 	}()
 
 	go func() {
-		proxyrouter := garbanzo.NewProxyRouter()
+		proxyrouter := garbanzo.NewProxyRouter(c)
 		proxyrouter.Start(":" + strconv.FormatUint(uint64(env.ProxyPort), 10))
 	}()
 

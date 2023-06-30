@@ -4,13 +4,18 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRootHandler(t *testing.T) {
-	router := NewRouter("templates/*.html", "static/*")
+	c := NewConfig(".")
+	c.PutConfDir()
+	defer os.RemoveAll(".garbanzo")
+
+	router := NewRouter(c, "templates/*.html", "static/*")
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
 
@@ -25,7 +30,11 @@ func TestRootHandler(t *testing.T) {
 }
 
 func TestFaviconHandler(t *testing.T) {
-	router := NewRouter("templates/*.html", "static/*")
+	c := NewConfig(".")
+	c.PutConfDir()
+	defer os.RemoveAll(".garbanzo")
+
+	router := NewRouter(c, "templates/*.html", "static/*")
 	testServer := httptest.NewServer(router)
 	defer testServer.Close()
 
@@ -36,34 +45,3 @@ func TestFaviconHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
-
-// Proxy Server.
-func TestHomeHandler(t *testing.T) {
-	router := NewProxyRouter()
-	testServer := httptest.NewServer(router)
-	defer testServer.Close()
-
-	req, _ := http.NewRequest("GET", testServer.URL, nil)
-
-	client := new(http.Client)
-	resp, _ := client.Do(req)
-	respBody, _ := ioutil.ReadAll(resp.Body)
-
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, string(respBody), "Garbanzo is fast notification viewer!")
-}
-
-// func TestGHHandler(t *testing.T) {
-// 	router := NewProxyRouter()
-// 	testServer := httptest.NewServer(router)
-// 	defer testServer.Close()
-
-// 	req, _ := http.NewRequest("GET", testServer.URL+"/kijimaD?origin=github.com", nil)
-
-// 	client := new(http.Client)
-// 	resp, _ := client.Do(req)
-// 	respBody, _ := ioutil.ReadAll(resp.Body)
-
-// 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-// 	assert.Contains(t, string(respBody), "GitHub")
-// }

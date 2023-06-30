@@ -2,6 +2,7 @@ package garbanzo
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -52,14 +53,13 @@ func buildTokenStatus(c *Config) (string, error) {
 	}
 	defer f.Close()
 
-	buf := make([]byte, 1024)
-	_, err = f.Read(buf)
+	bs, err := io.ReadAll(f)
 	if err != nil {
 		return "", err
 	}
 
 	var tokenStatus string
-	if len(string(buf)) > 0 {
+	if len(string(bs)) > 0 {
 		tokenStatus = "🟢 ok"
 	} else {
 		tokenStatus = "🔴 not set"
