@@ -5,19 +5,16 @@ import (
 	"os"
 )
 
-func buildHomeMD() (string, error) {
-	homedir, _ := os.UserHomeDir()
-	conf := NewConfig(homedir)
-
+func buildHomeMD(c *Config) (string, error) {
 	tmpl, err := buildTemplateMD()
 	if err != nil {
 		return "", err
 	}
-	feedTable, err := buildFeedStatus(conf)
+	feedTable, err := buildFeedStatus(c)
 	if err != nil {
 		return "", err
 	}
-	tokenStatus, err := buildTokenStatus(conf)
+	tokenStatus, err := buildTokenStatus(c)
 	if err != nil {
 		return "", err
 	}

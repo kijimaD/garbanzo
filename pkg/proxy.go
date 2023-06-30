@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -18,7 +19,10 @@ func NewProxyRouter() *echo.Echo {
 }
 
 func homeHandler(c echo.Context) error {
-	md, err := buildHomeMD()
+	// TODO: 設定ディレクトリを注入できるようにする
+	homedir, _ := os.UserHomeDir()
+	conf := NewConfig(homedir)
+	md, err := buildHomeMD(conf)
 	if err != nil {
 		return err
 	}
