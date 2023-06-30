@@ -13,9 +13,9 @@ type feedSource struct {
 
 type feedSources []feedSource
 
-func (fss *feedSources) dumpFeedsTable() string {
+func (ss *feedSources) dumpFeedsTable() string {
 	d := [][]string{}
-	for _, f := range *fss {
+	for _, f := range *ss {
 		d = append(d, []string{f.Desc, f.URL})
 	}
 	var output bytes.Buffer

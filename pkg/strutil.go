@@ -6,6 +6,10 @@ import (
 	"os"
 )
 
+// stringを組み立てる関数群
+
+const templateMDPath = "templates/home.md"
+
 func buildHomeMD(c *Config) (string, error) {
 	tmpl, err := buildTemplateMD()
 	if err != nil {
@@ -24,8 +28,6 @@ func buildHomeMD(c *Config) (string, error) {
 	return md, nil
 }
 
-const templateMDPath = "templates/home.md"
-
 func buildTemplateMD() (string, error) {
 	data, err := fst.ReadFile(templateMDPath)
 	if err != nil {
@@ -35,19 +37,22 @@ func buildTemplateMD() (string, error) {
 }
 
 func buildFeedStatus(c *Config) (string, error) {
-	header := "## RSS Feed lists\n"
-	filepath := fmt.Sprintf("`%s`\n\n", c.feedFilePath())
+	const header = "## RSS Feed lists\n"
+	filePath := fmt.Sprintf("`%s`\n\n", c.feedFilePath())
 
-	b, _ := os.ReadFile(c.feedFilePath())
-	fss := c.loadFeedSources(b)
+	b, err := os.ReadFile(c.feedFilePath())
+	if err != nil {
+		return "", err
+	}
+	feedSource := c.loadFeedSources(b)
 
-	result := header + filepath + fss.dumpFeedsTable()
+	result := header + filePath + feedSource.dumpFeedsTable()
 	return result, nil
 }
 
 func buildTokenStatus(c *Config) (string, error) {
-	tokenHeader := "## GitHub Token\n"
-	tokenPath := "`~/.garbanzo/token`\n\n"
+	const header = "## GitHub Token\n"
+	const tokenPath = "`~/.garbanzo/token`\n\n"
 
 	f, err := os.Open(c.tokenFilePath())
 	if err != nil {
@@ -60,12 +65,12 @@ func buildTokenStatus(c *Config) (string, error) {
 		return "", err
 	}
 
-	var tokenStatus string
+	var status string
 	if len(string(bs)) > 0 {
-		tokenStatus = "🟢 ok"
+		status = "🟢 ok"
 	} else {
-		tokenStatus = "🔴 not set"
+		status = "🔴 not set"
 	}
 
-	return tokenHeader + tokenPath + tokenStatus, nil
+	return header + tokenPath + status, nil
 }
