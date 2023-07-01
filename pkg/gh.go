@@ -25,24 +25,12 @@ import (
 const timezone = "Asia/Tokyo"
 const timeformat = "2006-01-02 15:04"
 
-var ProxyBase string
-
-type Env struct {
-	AppPort     uint16 `envconfig:"APP_PORT" default:"8080"`
-	ProxyHost   string `envconfig:"PROXY_BASE" default:"http://localhost"`
-	ProxyPort   uint16 `envconfig:"PROXY_PORT" default:"8081"`
-	GitHubToken string `envconfig:"GH_TOKEN"`
-}
-
-var Envar Env
-
 func init() {
 	err := envconfig.Process("", &Envar)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Can't parse environment variables: %s\n", err.Error())
 		os.Exit(1)
 	}
-	ProxyBase = Envar.ProxyHost + ":" + strconv.FormatUint(uint64(Envar.ProxyPort), 10)
 }
 
 type clientI interface {
@@ -409,9 +397,9 @@ func genProxyURL(u string) (string, error) {
 	}
 	var proxyURL string
 	if h.Fragment == "" {
-		proxyURL = ProxyBase + h.Path + "?origin=" + h.Host
+		proxyURL = Envar.proxyBase() + h.Path + "?origin=" + h.Host
 	} else {
-		proxyURL = ProxyBase + h.Path + "?origin=" + h.Host + "#" + h.Fragment
+		proxyURL = Envar.proxyBase() + h.Path + "?origin=" + h.Host + "#" + h.Fragment
 	}
 
 	return proxyURL, nil
