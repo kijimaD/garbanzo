@@ -2,13 +2,16 @@
 
 garbanzo is fast notification viewer!
 
+- RSS feeds
+- GitHub notifications
+
 [screencast-localhost_8080-2023.06.08-22_11_14.webm](https://github.com/kijimaD/garbanzo/assets/11595790/4b0c6559-18d0-4f87-9d9d-a04884973a01)
 
 support push notification
 
 ![image](https://github.com/kijimaD/garbanzo/assets/11595790/5ce7eab9-efc3-4462-b2cc-059cbbef3dbd)
 
-restriction
+restriction...
 
 - can't open a link in iframe
 - can't open a private link
@@ -24,19 +27,21 @@ $ go install github.com/kijimaD/garbanzo@main
 Run
 
 ```
-$ GH_TOKEN=xxx garbanzo
+$ garbanzo
 ```
 
-Need GitHub Personal Access Token(**notification scope**)! Token is used to fetch users notifications.
+and, access http://localhost:8080
+
+## [optional] GitHub token
+
+If you want to receive GitHub notifications, require GitHub Personal Access Token(**notification scope**)! Token is used to fetch users notifications.
 
 <img src="https://github.com/kijimaD/garbanzo/assets/11595790/9cabb383-a5a2-484c-8967-0860ad87d5a9" width=800>
-
-and, access http://localhost:8080
 
 ## docker run
 
 ```
-$ docker run --rm -it --env GH_TOKEN=xxx -p 8080:8080 -p 8081:8081 ghcr.io/kijimad/garbanzo:latest
+$ docker run --rm -it -p 8080:8080 -p 8081:8081 ghcr.io/kijimad/garbanzo:latest
 ```
 
 ## image

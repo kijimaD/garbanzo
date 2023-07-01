@@ -62,7 +62,9 @@ func TestPutDir(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, "# feed list\n- desc: RFC\n  url: https://www.rfc-editor.org/rfcrss.xml\n- desc: Go blog\n  url: https://go.dev/blog/feed.atom?format=xml\n- desc: Russ Cox blog\n  url: https://research.swtch.com/feed.atom\n", string(fb))
+
+	expect := "# feed list\n- desc: Zenn Go\n  url: https://zenn.dev/topics/go/feed\n- desc: oreilly ebook soon\n  url: https://www.oreilly.co.jp/ebook/new_release.atom\n- desc: Russ Cox blog\n  url: https://research.swtch.com/feed.atom\n"
+	assert.Equal(t, expect, string(fb))
 }
 
 func TestLoadFeedSources(t *testing.T) {
