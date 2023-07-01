@@ -9,6 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+var proxyCache = make(map[string]string)
+var proxyMutex = &sync.RWMutex{}
+
 type proxyServ struct {
 	config *Config
 }
@@ -30,9 +33,6 @@ func (p *proxyServ) homeHandler(c echo.Context) error {
 	html := string(mdToHTML([]byte(md)))
 	return c.HTML(http.StatusOK, html)
 }
-
-var proxyCache = make(map[string]string)
-var proxyMutex = &sync.RWMutex{}
 
 func (p *proxyServ) ghHandler(c echo.Context) error {
 	var u string
