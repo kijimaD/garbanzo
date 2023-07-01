@@ -212,9 +212,9 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 		*pull.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
+		*n.UpdatedAt,
 		genTZTimeStr(n.UpdatedAt),
 		"PR",
-		*n.UpdatedAt,
 	)
 
 	return event, nil
@@ -261,9 +261,9 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*issue.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
+		*n.UpdatedAt,
 		genTZTimeStr(n.UpdatedAt),
 		"Issue",
-		*n.UpdatedAt,
 	)
 
 	return event, nil
@@ -314,9 +314,9 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 		*comment.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
+		*n.UpdatedAt,
 		genTZTimeStr(n.UpdatedAt),
 		"Comment",
-		*n.UpdatedAt,
 	)
 
 	return event, nil
@@ -367,9 +367,9 @@ func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
 		*release.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
+		*n.UpdatedAt,
 		genTZTimeStr(n.UpdatedAt),
 		"Release",
-		*n.UpdatedAt,
 	)
 
 	return event, nil

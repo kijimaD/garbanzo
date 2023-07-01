@@ -333,9 +333,9 @@ func (r *room) getFeedEvent(feedURL string) error {
 			f.Link,
 			proxyLink,
 			feed.Title,
-			genTZTimeStr(&published),
-			"",
 			published,
+			genTZTimeStr(&published),
+			"Feed",
 		)
 		r.fetch <- event
 		r.feeds[f.Link] = true
