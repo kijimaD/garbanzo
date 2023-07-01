@@ -24,7 +24,8 @@ type TemplateRenderer struct {
 
 func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	data = map[string]interface{}{
-		"Host": c.Request().Host,
+		"AppHost":   c.Request().Host,
+		"ProxyBase": Envar.proxyBase(),
 	}
 	return t.templates.ExecuteTemplate(w, name, data)
 }
