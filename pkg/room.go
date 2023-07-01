@@ -325,7 +325,7 @@ func (r *room) getFeedEvent(feedURL string) error {
 			Feed,
 			strconv.FormatInt(unix, 10),
 			authorName,
-			"http://localhost:8080/rssicon", // TODO: ホストやポートのハードコーディングをやめる
+			Envar.appBase()+"/rss_icon",
 			f.Title,
 			f.Title,
 			content,

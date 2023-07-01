@@ -48,7 +48,7 @@ func NewRouter(c *Config, templDir string, publicDir string) *echo.Echo {
 	e.GET("/events", room.eventHandler)
 	// TODO: static系を1ハンドラにまとめる
 	e.GET("/favicon.ico", faviconHandler)
-	e.GET("/rssicon", rssIconHandler)
+	e.GET("/rss_icon", rssIconHandler)
 	return e
 }
 
