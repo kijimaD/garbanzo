@@ -29,7 +29,7 @@ var ProxyBase string
 
 type Env struct {
 	AppPort     uint16 `envconfig:"APP_PORT" default:"8080"`
-	ProxyHost   string `envconfig:"ProxyBase" default:"http://localhost"`
+	ProxyHost   string `envconfig:"PROXY_BASE" default:"http://localhost"`
 	ProxyPort   uint16 `envconfig:"PROXY_PORT" default:"8081"`
 	GitHubToken string `envconfig:"GH_TOKEN"`
 }
