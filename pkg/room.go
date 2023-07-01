@@ -325,7 +325,7 @@ func (r *room) getFeedEvent(feedURL string) error {
 			f.Link,
 			proxyLink,
 			feed.Title,
-			genTimeWithTZ(&published),
+			genTZTimeStr(&published),
 			"",
 			published,
 		)

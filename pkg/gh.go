@@ -220,7 +220,7 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 		*pull.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		genTimeWithTZ(n.UpdatedAt),
+		genTZTimeStr(n.UpdatedAt),
 		"PR",
 		*n.UpdatedAt,
 	)
@@ -269,7 +269,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*issue.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		genTimeWithTZ(n.UpdatedAt),
+		genTZTimeStr(n.UpdatedAt),
 		"Issue",
 		*n.UpdatedAt,
 	)
@@ -322,7 +322,7 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 		*comment.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		genTimeWithTZ(n.UpdatedAt),
+		genTZTimeStr(n.UpdatedAt),
 		"Comment",
 		*n.UpdatedAt,
 	)
@@ -375,7 +375,7 @@ func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
 		*release.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		genTimeWithTZ(n.UpdatedAt),
+		genTZTimeStr(n.UpdatedAt),
 		"Release",
 		*n.UpdatedAt,
 	)
@@ -413,7 +413,7 @@ func genProxyURL(u string) (string, error) {
 	return proxyURL, nil
 }
 
-func genTimeWithTZ(t *time.Time) string {
+func genTZTimeStr(t *time.Time) string {
 	jst := time.FixedZone(timezone, 9*60*60)
 	nowJST := t.In(jst)
 	updatedAt := nowJST.Format(timeformat)
