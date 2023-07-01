@@ -29,7 +29,7 @@ func TestBulidTokenStatusOK(t *testing.T) {
 	}
 
 	s, _ := buildTokenStatus(c)
-	expect := "## GitHub Token\n" + "`~/.garbanzo/token`\n\n" + "🟢 ok"
+	expect := "## GitHub Token\n" + "`.garbanzo/token`\n\n" + "🟢 ok"
 	assert.Equal(t, expect, s)
 }
 
@@ -45,6 +45,6 @@ func TestBulidTokenStatusNotSet(t *testing.T) {
 	}
 
 	s, _ := buildTokenStatus(c)
-	expect := "## GitHub Token\n" + "`~/.garbanzo/token`\n\n" + "🔴 not set"
+	expect := "## GitHub Token\n" + "`.garbanzo/token`\n\n" + "🔴 not set"
 	assert.Equal(t, expect, s)
 }
