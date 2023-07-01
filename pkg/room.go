@@ -90,7 +90,7 @@ func (r *room) run() {
 						keys = append(keys, key)
 					}
 					sort.SliceStable(keys, func(i, j int) bool {
-						return r.events[keys[i]].When < r.events[keys[j]].When
+						return r.events[keys[i]].UpdatedAtStr < r.events[keys[j]].UpdatedAtStr
 					})
 					sorted := make([]*Event, 0, len(r.events))
 					for _, k := range keys {
