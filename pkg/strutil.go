@@ -39,6 +39,7 @@ func buildTemplateMD() (string, error) {
 func buildFeedStatus(c *Config) (string, error) {
 	const header = "## RSS Feed lists\n"
 	filePath := fmt.Sprintf("`%s`\n\n", c.feedFilePath())
+	const example = "[example config](https://github.com/kijimaD/dotfiles/blob/main/.garbanzo/feeds.yml)\n"
 
 	b, err := os.ReadFile(c.feedFilePath())
 	if err != nil {
@@ -46,7 +47,7 @@ func buildFeedStatus(c *Config) (string, error) {
 	}
 	feedSource := c.loadFeedSources(b)
 
-	result := header + filePath + feedSource.dumpFeedsTable()
+	result := header + filePath + feedSource.dumpFeedsTable() + example
 	return result, nil
 }
 

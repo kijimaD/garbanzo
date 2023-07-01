@@ -63,10 +63,10 @@ func (c *Config) PutConfDir() {
 	const saveFileContent = `# marked list
 `
 	const feedFileContent = `# feed list
-- desc: RFC
-  url: https://www.rfc-editor.org/rfcrss.xml
-- desc: Go blog
-  url: https://go.dev/blog/feed.atom?format=xml
+- desc: Zenn Go
+  url: https://zenn.dev/topics/go/feed
+- desc: oreilly ebook soon
+  url: https://www.oreilly.co.jp/ebook/new_release.atom
 - desc: Russ Cox blog
   url: https://research.swtch.com/feed.atom
 `
