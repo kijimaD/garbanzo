@@ -10,11 +10,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const FeedFile = "feeds.yml"
-const TokenFile = "token"
+const (
+	AppDir    = ".garbanzo"
+	FeedFile  = "feeds.yml"
+	TokenFile = "token"
+	SaveFile  = "mark.csv"
+)
 
 type Config struct {
-	baseDir string
+	baseDir string // 設定ファイルがあるディレクトリ
 }
 
 func NewConfig(baseDir string) *Config {
@@ -61,8 +65,10 @@ func (c *Config) PutConfDir() {
 	const feedFileContent = `# feed list
 - desc: RFC
   url: https://www.rfc-editor.org/rfcrss.xml
-- desc: Hacker News
-  url: https://news.ycombinator.com/rss
+- desc: Go blog
+  url: https://go.dev/blog/feed.atom?format=xml
+- desc: Russ Cox blog
+  url: https://research.swtch.com/feed.atom
 `
 	fileInfo, err := os.Lstat(c.baseDir)
 	if err != nil {

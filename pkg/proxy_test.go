@@ -1,7 +1,7 @@
 package garbanzo
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -27,7 +27,7 @@ func TestHomeHandler(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Error(err)
 	}
@@ -37,7 +37,11 @@ func TestHomeHandler(t *testing.T) {
 }
 
 // func TestGHHandler(t *testing.T) {
-// 	router := NewProxyRouter()
+// 	c := NewConfig(".")
+// 	c.PutConfDir()
+// 	defer os.RemoveAll(".garbanzo")
+
+// 	router := NewProxyRouter(c)
 // 	testServer := httptest.NewServer(router)
 // 	defer testServer.Close()
 
@@ -45,8 +49,8 @@ func TestHomeHandler(t *testing.T) {
 
 // 	client := new(http.Client)
 // 	resp, _ := client.Do(req)
-// 	respBody, _ := ioutil.ReadAll(resp.Body)
+// 	respBody, _ := io.ReadAll(resp.Body)
 
 // 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-// 	assert.Contains(t, string(respBody), "GitHub")
+// 	assert.Contains(t, string(respBody), "<title>kijimaD (Kijima Daigo) · GitHub</title>")
 // }

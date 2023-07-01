@@ -25,23 +25,12 @@ import (
 const timezone = "Asia/Tokyo"
 const timeformat = "2006-01-02 15:04"
 
-var ProxyBase string
-
-type Env struct {
-	ProxyHost   string `envconfig:"ProxyBase" default:"http://localhost"`
-	ProxyPort   uint16 `envconfig:"PROXY_PORT" default:"8081"`
-	GitHubToken string `envconfig:"GH_TOKEN"`
-}
-
-var env Env
-
 func init() {
-	err := envconfig.Process("", &env)
+	err := envconfig.Process("", &Envar)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Can't parse environment variables: %s\n", err.Error())
 		os.Exit(1)
 	}
-	ProxyBase = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
 }
 
 type clientI interface {
@@ -55,8 +44,8 @@ type GitHub struct {
 func newGitHub(token string) (*GitHub, error) {
 	// 環境変数を最優先する
 	t := token
-	if env.GitHubToken != "" {
-		t = env.GitHubToken
+	if Envar.GitHubToken != "" {
+		t = Envar.GitHubToken
 	}
 	if t == "" {
 		return nil, fmt.Errorf("not set GitHub token")
@@ -88,7 +77,10 @@ func (gh *GitHub) getNotifications() error {
 	return nil
 }
 
-// notificationsの情報を補足してeventに変換する
+// notifications配列を処理するときに各イテレートでsleepする秒数
+const fetchEventSecond = 2
+
+// notificationsをeventに変換する
 // 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification(r *room) error {
 	// notificationsを日付順にソートしてからループを実行する
@@ -173,7 +165,7 @@ func (gh *GitHub) processNotification(r *room) error {
 			log.Println("URLパースを通過した", *n.Subject.LatestCommentURL, *n.Subject.Title)
 		}
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(fetchEventSecond * time.Second)
 	}
 
 	return nil
@@ -220,7 +212,7 @@ func (gh *GitHub) getPullRequestEvent(n *github.Notification) (*Event, error) {
 		*pull.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		genTimeWithTZ(n.UpdatedAt),
+		genTZTimeStr(n.UpdatedAt),
 		"PR",
 		*n.UpdatedAt,
 	)
@@ -269,7 +261,7 @@ func (gh *GitHub) getIssueEvent(n *github.Notification) (*Event, error) {
 		*issue.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		genTimeWithTZ(n.UpdatedAt),
+		genTZTimeStr(n.UpdatedAt),
 		"Issue",
 		*n.UpdatedAt,
 	)
@@ -322,7 +314,7 @@ func (gh *GitHub) getIssueCommentEvent(n *github.Notification) (*Event, error) {
 		*comment.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		genTimeWithTZ(n.UpdatedAt),
+		genTZTimeStr(n.UpdatedAt),
 		"Comment",
 		*n.UpdatedAt,
 	)
@@ -375,7 +367,7 @@ func (gh *GitHub) getReleaseEvent(n *github.Notification) (*Event, error) {
 		*release.HTMLURL,
 		proxyURL,
 		*n.Repository.FullName,
-		genTimeWithTZ(n.UpdatedAt),
+		genTZTimeStr(n.UpdatedAt),
 		"Release",
 		*n.UpdatedAt,
 	)
@@ -405,15 +397,15 @@ func genProxyURL(u string) (string, error) {
 	}
 	var proxyURL string
 	if h.Fragment == "" {
-		proxyURL = ProxyBase + h.Path + "?origin=" + h.Host
+		proxyURL = Envar.proxyBase() + h.Path + "?origin=" + h.Host
 	} else {
-		proxyURL = ProxyBase + h.Path + "?origin=" + h.Host + "#" + h.Fragment
+		proxyURL = Envar.proxyBase() + h.Path + "?origin=" + h.Host + "#" + h.Fragment
 	}
 
 	return proxyURL, nil
 }
 
-func genTimeWithTZ(t *time.Time) string {
+func genTZTimeStr(t *time.Time) string {
 	jst := time.FixedZone(timezone, 9*60*60)
 	nowJST := t.In(jst)
 	updatedAt := nowJST.Format(timeformat)

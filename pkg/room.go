@@ -2,7 +2,7 @@ package garbanzo
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -66,15 +66,17 @@ const (
 
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
-const syncSecond = 4
+const syncEventSecond = 4
+const syncStatsSecond = 2
+const fetchJobSecond = 300
 
 func (r *room) run() {
 	go func() {
-		t1 := time.NewTicker(syncSecond * time.Second)
+		t1 := time.NewTicker(syncEventSecond * time.Second)
 		defer t1.Stop()
-		t2 := time.NewTicker(60 * 5 * time.Second)
+		t2 := time.NewTicker(syncStatsSecond * time.Second)
 		defer t2.Stop()
-		t3 := time.NewTicker(2 * time.Second)
+		t3 := time.NewTicker(fetchJobSecond * time.Second)
 		defer t3.Stop()
 		for {
 			select {
@@ -101,6 +103,16 @@ func (r *room) run() {
 				}()
 			case <-t2.C:
 				go func() {
+					r.mu.RLock()
+					r.statsStore.EventCount = len(r.events)
+					r.mu.RUnlock()
+
+					proxyMutex.RLock()
+					r.statsStore.CacheCount = len(proxyCache)
+					proxyMutex.RUnlock()
+				}()
+			case <-t3.C:
+				go func() {
 					r.fetchEvent()
 
 					err := r.fetchCache()
@@ -111,16 +123,6 @@ func (r *room) run() {
 				go func() {
 					r.fetchFeeds()
 				}()
-			case <-t3.C:
-				go func() {
-					r.mu.RLock()
-					r.statsStore.EventCount = len(r.events)
-					r.mu.RUnlock()
-
-					proxyMutex.RLock()
-					r.statsStore.CacheCount = len(proxyCache)
-					proxyMutex.RUnlock()
-				}()
 			}
 		}
 	}()
@@ -128,11 +130,11 @@ func (r *room) run() {
 	for {
 		select {
 		case wsClient := <-r.join:
-			// 参加
+			// 接続
 			r.wsClients[wsClient] = true
 			r.tracer.Trace("join client")
 		case wsClient := <-r.leave:
-			// 退室
+			// 切断
 			delete(r.wsClients, wsClient)
 			close(wsClient.send)
 			r.tracer.Trace("leave client")
@@ -147,7 +149,8 @@ func (r *room) run() {
 					}
 				} else if mark.Source == Feed {
 					// feed
-					r.config.markToFile(mark.HTMLURL)
+					fdb := newfdb(r.config)
+					fdb.markToFile(mark.HTMLURL)
 				}
 			}()
 			delete(r.events, mark.ID)
@@ -244,6 +247,9 @@ func (r *room) markThreadRead(id string) error {
 	return nil
 }
 
+// キャッシュ配列を処理するときに各イテレートでsleepする秒数
+const fetchCacheSecond = 2
+
 // HTMLページのキャッシュを取得する
 func (r *room) fetchCache() error {
 	for _, v := range r.events {
@@ -256,15 +262,18 @@ func (r *room) fetchCache() error {
 
 		resp, _ := http.Get(v.ProxyURL)
 		defer resp.Body.Close()
-		byteArray, _ := ioutil.ReadAll(resp.Body)
+		byteArray, _ := io.ReadAll(resp.Body)
 		proxyMutex.Lock()
 		proxyCache[v.ProxyURL] = string(byteArray)
 		proxyMutex.Unlock()
 
-		time.Sleep(time.Second * 1)
+		time.Sleep(fetchCacheSecond * time.Second)
 	}
 	return nil
 }
+
+// feed.Items配列を処理するときに各イテレートでsleepする秒数
+const getFeedSecond = 2
 
 // フィードURLからイベントを取得する
 func (r *room) getFeedEvent(feedURL string) error {
@@ -278,7 +287,8 @@ func (r *room) getFeedEvent(feedURL string) error {
 		if exists {
 			continue
 		}
-		if r.config.isMarked(f.Link) {
+		fdb := newfdb(r.config)
+		if fdb.isMarked(f.Link) {
 			continue
 		}
 
@@ -315,7 +325,7 @@ func (r *room) getFeedEvent(feedURL string) error {
 			Feed,
 			strconv.FormatInt(unix, 10),
 			authorName,
-			"http://localhost:8080/rssicon", // TODO: ホストやポートのハードコーディングをやめる
+			Envar.appBase()+"/rss_icon",
 			f.Title,
 			f.Title,
 			content,
@@ -323,13 +333,13 @@ func (r *room) getFeedEvent(feedURL string) error {
 			f.Link,
 			proxyLink,
 			feed.Title,
-			genTimeWithTZ(&published),
+			genTZTimeStr(&published),
 			"",
 			published,
 		)
 		r.fetch <- event
 		r.feeds[f.Link] = true
-		time.Sleep(2 * time.Second)
+		time.Sleep(getFeedSecond * time.Second)
 	}
 	return nil
 }

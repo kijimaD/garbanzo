@@ -8,24 +8,29 @@ import (
 	"os"
 )
 
-const AppDir = ".garbanzo"
-const SaveFile = "mark.csv"
+type fdb struct {
+	config *Config
+}
+
+func newfdb(c *Config) *fdb {
+	return &fdb{config: c}
+}
 
 // 既読ファイルに書き込む
-func (c *Config) markToFile(url string) {
-	if _, err := os.Stat(c.saveFilePath()); errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(c.saveFilePath())
+func (fdb *fdb) markToFile(url string) {
+	if _, err := os.Stat(fdb.config.saveFilePath()); errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(fdb.config.saveFilePath())
 		defer f.Close()
 		if err != nil {
 			log.Println(err)
 		}
 
 		writer := csv.NewWriter(f)
-		writer.Write([]string{"url"}) // ヘッダー
-		writer.Flush()                // Writeだと内部バッファに書き込まれるだけ
+		writer.Write([]string{"URL"}) // ヘッダー
+		writer.Flush()                // Writeだと内部バッファに書き込まれるだけなのでFlush()が必要
 	}
 
-	file, err := os.OpenFile(c.saveFilePath(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	file, err := os.OpenFile(fdb.config.saveFilePath(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Println(err)
 	}
@@ -38,8 +43,8 @@ func (c *Config) markToFile(url string) {
 }
 
 // ファイルにURLが存在すれば既読状態としてtrueを返す
-func (c *Config) isMarked(url string) bool {
-	file, err := os.Open(c.saveFilePath())
+func (fdb *fdb) isMarked(url string) bool {
+	file, err := os.Open(fdb.config.saveFilePath())
 	if err != nil {
 		log.Println(err)
 	}

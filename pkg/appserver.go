@@ -24,7 +24,8 @@ type TemplateRenderer struct {
 
 func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	data = map[string]interface{}{
-		"Host": c.Request().Host,
+		"AppHost":   c.Request().Host,
+		"ProxyBase": Envar.proxyBase(),
 	}
 	return t.templates.ExecuteTemplate(w, name, data)
 }
@@ -48,7 +49,7 @@ func NewRouter(c *Config, templDir string, publicDir string) *echo.Echo {
 	e.GET("/events", room.eventHandler)
 	// TODO: static系を1ハンドラにまとめる
 	e.GET("/favicon.ico", faviconHandler)
-	e.GET("/rssicon", rssIconHandler)
+	e.GET("/rss_icon", rssIconHandler)
 	return e
 }
 

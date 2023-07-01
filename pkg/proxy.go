@@ -1,13 +1,16 @@
 package garbanzo
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"sync"
 
 	"github.com/labstack/echo/v4"
 )
+
+var proxyCache = make(map[string]string)
+var proxyMutex = &sync.RWMutex{}
 
 type proxyServ struct {
 	config *Config
@@ -30,9 +33,6 @@ func (p *proxyServ) homeHandler(c echo.Context) error {
 	html := string(mdToHTML([]byte(md)))
 	return c.HTML(http.StatusOK, html)
 }
-
-var proxyCache = make(map[string]string)
-var proxyMutex = &sync.RWMutex{}
 
 func (p *proxyServ) ghHandler(c echo.Context) error {
 	var u string
@@ -59,7 +59,7 @@ func (p *proxyServ) ghHandler(c echo.Context) error {
 	resp, _ := http.Get(u)
 	defer resp.Body.Close()
 
-	byteArray, _ := ioutil.ReadAll(resp.Body)
+	byteArray, _ := io.ReadAll(resp.Body)
 	// save cache
 	proxyMutex.Lock()
 	proxyCache[u] = string(byteArray)
