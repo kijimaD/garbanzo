@@ -28,20 +28,21 @@ const timeformat = "2006-01-02 15:04"
 var ProxyBase string
 
 type Env struct {
+	AppPort     uint16 `envconfig:"APP_PORT" default:"8080"`
 	ProxyHost   string `envconfig:"ProxyBase" default:"http://localhost"`
 	ProxyPort   uint16 `envconfig:"PROXY_PORT" default:"8081"`
 	GitHubToken string `envconfig:"GH_TOKEN"`
 }
 
-var env Env
+var Envar Env
 
 func init() {
-	err := envconfig.Process("", &env)
+	err := envconfig.Process("", &Envar)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Can't parse environment variables: %s\n", err.Error())
 		os.Exit(1)
 	}
-	ProxyBase = env.ProxyHost + ":" + strconv.FormatUint(uint64(env.ProxyPort), 10)
+	ProxyBase = Envar.ProxyHost + ":" + strconv.FormatUint(uint64(Envar.ProxyPort), 10)
 }
 
 type clientI interface {
@@ -55,8 +56,8 @@ type GitHub struct {
 func newGitHub(token string) (*GitHub, error) {
 	// 環境変数を最優先する
 	t := token
-	if env.GitHubToken != "" {
-		t = env.GitHubToken
+	if Envar.GitHubToken != "" {
+		t = Envar.GitHubToken
 	}
 	if t == "" {
 		return nil, fmt.Errorf("not set GitHub token")
