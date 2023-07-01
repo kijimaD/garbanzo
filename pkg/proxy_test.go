@@ -36,17 +36,21 @@ func TestHomeHandler(t *testing.T) {
 	assert.Contains(t, string(respBody), "Garbanzo is fast notification viewer!")
 }
 
-// func TestGHHandler(t *testing.T) {
-// 	router := NewProxyRouter()
-// 	testServer := httptest.NewServer(router)
-// 	defer testServer.Close()
+func TestGHHandler(t *testing.T) {
+	c := NewConfig(".")
+	c.PutConfDir()
+	defer os.RemoveAll(".garbanzo")
 
-// 	req, _ := http.NewRequest("GET", testServer.URL+"/kijimaD?origin=github.com", nil)
+	router := NewProxyRouter(c)
+	testServer := httptest.NewServer(router)
+	defer testServer.Close()
 
-// 	client := new(http.Client)
-// 	resp, _ := client.Do(req)
-// 	respBody, _ := ioutil.ReadAll(resp.Body)
+	req, _ := http.NewRequest("GET", testServer.URL+"/kijimaD?origin=github.com", nil)
 
-// 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-// 	assert.Contains(t, string(respBody), "GitHub")
-// }
+	client := new(http.Client)
+	resp, _ := client.Do(req)
+	respBody, _ := ioutil.ReadAll(resp.Body)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Contains(t, string(respBody), "<title>kijimaD (Kijima Daigo) · GitHub</title>")
+}
