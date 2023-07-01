@@ -88,7 +88,10 @@ func (gh *GitHub) getNotifications() error {
 	return nil
 }
 
-// notificationsの情報を補足してeventに変換する
+// notifications配列を処理するときに各イテレートでsleepする秒数
+const fetchEventSecond = 2
+
+// notificationsをeventに変換する
 // 処理し終わったら配列から削除する
 func (gh *GitHub) processNotification(r *room) error {
 	// notificationsを日付順にソートしてからループを実行する
@@ -173,7 +176,7 @@ func (gh *GitHub) processNotification(r *room) error {
 			log.Println("URLパースを通過した", *n.Subject.LatestCommentURL, *n.Subject.Title)
 		}
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(fetchEventSecond * time.Second)
 	}
 
 	return nil
