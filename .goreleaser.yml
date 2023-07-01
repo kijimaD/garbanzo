@@ -37,6 +37,5 @@ brews:
       owner: kijimaD
       name: homebrew-tap
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    folder: Formula
     homepage: https://github.com/kijimaD/garbanzo
     description: notification viewer

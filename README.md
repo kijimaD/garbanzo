@@ -16,15 +16,21 @@ restriction...
 - can't open a link in iframe
 - can't open a private link
 
-## how to use
+## Install
 
-Install
+#### go install
 
 ```
 $ go install github.com/kijimaD/garbanzo@main
 ```
 
-Run
+#### brew
+
+```
+$ brew install kijimaD/tap/garbanzo
+```
+
+## How to use
 
 ```
 $ garbanzo
