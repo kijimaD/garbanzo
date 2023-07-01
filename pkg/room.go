@@ -113,9 +113,11 @@ func (r *room) run() {
 				}()
 			case <-t3.C:
 				go func() {
-					r.fetchEvent()
-
-					err := r.fetchCache()
+					err := r.fetchEvent()
+					if err != nil {
+						log.Println(err)
+					}
+					err = r.fetchCache()
 					if err != nil {
 						log.Println(err)
 					}
@@ -219,6 +221,11 @@ func (r *room) fetchEvent() error {
 	b, err := os.ReadFile(r.config.tokenFilePath())
 	if err != nil {
 		return err
+	}
+	if string(b) == "" {
+		// empty token
+		log.Println("GitHub token is not set, skip")
+		return nil
 	}
 	gh, err := newGitHub(string(b))
 	err = gh.getNotifications()

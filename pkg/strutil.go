@@ -52,7 +52,7 @@ func buildFeedStatus(c *Config) (string, error) {
 
 func buildTokenStatus(c *Config) (string, error) {
 	const header = "## GitHub Token\n"
-	const tokenPath = "`~/.garbanzo/token`\n\n"
+	tokenPath := fmt.Sprintf("`%s`\n\n", c.tokenFilePath())
 
 	f, err := os.Open(c.tokenFilePath())
 	if err != nil {
