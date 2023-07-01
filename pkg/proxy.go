@@ -1,7 +1,7 @@
 package garbanzo
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"sync"
@@ -59,7 +59,7 @@ func (p *proxyServ) ghHandler(c echo.Context) error {
 	resp, _ := http.Get(u)
 	defer resp.Body.Close()
 
-	byteArray, _ := ioutil.ReadAll(resp.Body)
+	byteArray, _ := io.ReadAll(resp.Body)
 	// save cache
 	proxyMutex.Lock()
 	proxyCache[u] = string(byteArray)

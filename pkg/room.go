@@ -2,7 +2,7 @@ package garbanzo
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -262,7 +262,7 @@ func (r *room) fetchCache() error {
 
 		resp, _ := http.Get(v.ProxyURL)
 		defer resp.Body.Close()
-		byteArray, _ := ioutil.ReadAll(resp.Body)
+		byteArray, _ := io.ReadAll(resp.Body)
 		proxyMutex.Lock()
 		proxyCache[v.ProxyURL] = string(byteArray)
 		proxyMutex.Unlock()
