@@ -30,6 +30,12 @@ $ go install github.com/kijimaD/garbanzo@main
 $ brew install kijimaD/tap/garbanzo
 ```
 
+#### docker
+
+```
+$ docker run --rm -it -p 8080:8080 -p 8081:8081 ghcr.io/kijimad/garbanzo:latest
+```
+
 ## How to use
 
 ```
@@ -44,10 +50,10 @@ If you want to receive GitHub notifications, require GitHub Personal Access Toke
 
 <img src="https://github.com/kijimaD/garbanzo/assets/11595790/9cabb383-a5a2-484c-8967-0860ad87d5a9" width=800>
 
-## docker run
+And set your token.
 
 ```
-$ docker run --rm -it -p 8080:8080 -p 8081:8081 ghcr.io/kijimad/garbanzo:latest
+$ echo "ghp_THIS_IS_TOKEN..." >> ~/.garbanzo/token
 ```
 
 ## image
