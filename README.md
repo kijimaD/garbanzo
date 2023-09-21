@@ -7,7 +7,7 @@ garbanzo is fast notification viewer!
 
 [screencast-localhost_8080-2023.06.08-22_11_14.webm](https://github.com/kijimaD/garbanzo/assets/11595790/4b0c6559-18d0-4f87-9d9d-a04884973a01)
 
-support push notification
+- support push notification
 
 ![image](https://github.com/kijimaD/garbanzo/assets/11595790/5ce7eab9-efc3-4462-b2cc-059cbbef3dbd)
 
